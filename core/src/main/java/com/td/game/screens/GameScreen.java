@@ -2083,7 +2083,9 @@ public class GameScreen implements Screen {
 
         @Override
         public boolean keyDown(int keycode) {
-            // KeyBindings removed - not available in this version
+            if (com.td.game.input.KeyBindings.handleShortcutKeys(keycode, game, mapType, GameScreen.this)) {
+                return true;
+            }
             if (keycode == Input.Keys.ESCAPE || keycode == Input.Keys.P) {
                 paused = !paused;
                 return true;

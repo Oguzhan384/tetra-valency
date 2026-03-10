@@ -20,6 +20,11 @@ public class KeyBindings {
         } else if (keycode == Input.Keys.NUM_3) {
             transitionToEndgame(game, mapType, currentScreen, EndgameScreen.EndState.ENDLESS_FINISH);
             return true;
+        } else if (keycode == Input.Keys.NUM_4) {
+            if (currentScreen instanceof com.td.game.screens.GameScreen) {
+                ((com.td.game.screens.GameScreen) currentScreen).killAllEnemies();
+            }
+            return true;
         }
         return false;
     }
