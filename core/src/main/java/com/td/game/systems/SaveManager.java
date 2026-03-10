@@ -7,4 +7,21 @@ public class SaveManager {
     public static final String SAVE_FILE_ELEMENTAL_CASTLE = SAVE_DIR + "save_elemental_castle.json";
     public static final String SAVE_FILE_DESERT_OASIS = SAVE_DIR + "save_desert_oasis.json";
 
+    public static String getSaveFilePath(com.td.game.map.GameMap.MapType mapType) {
+        if (mapType == com.td.game.map.GameMap.MapType.DESERT_OASIS) {
+            return SAVE_FILE_DESERT_OASIS;
+        }
+        return SAVE_FILE_ELEMENTAL_CASTLE;
+    }
+
+    public static void save(SaveData data, com.td.game.map.GameMap.MapType mapType) {
+        try {
+            String path = getSaveFilePath(mapType);
+            com.badlogic.gdx.files.FileHandle file = com.badlogic.gdx.Gdx.files.external(path);
+            file.writeString(data.toJson(), false);
+            com.badlogic.gdx.Gdx.app.log("SaveManager", "Game saved successfully to " + path);
+        } catch (Exception e) {
+            com.badlogic.gdx.Gdx.app.error("SaveManager", "Failed to save game", e);
+        }
+    }
 }
