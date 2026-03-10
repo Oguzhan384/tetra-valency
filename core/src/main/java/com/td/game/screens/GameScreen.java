@@ -332,10 +332,6 @@ public class GameScreen implements Screen {
         }
         waveManager = new WaveManager(pathWaypoints, modelFactory);
 
-        // Start first wave automatically
-        waveManager.startNextWave();
-        Gdx.app.log("GameScreen", "First wave started automatically");
-
         buildMenu = new ContextualMenuPanel();
         buildMenu.setFont(uiFont, uiBatch);
 
@@ -1085,7 +1081,8 @@ public class GameScreen implements Screen {
         uiShapeRenderer.setColor(0.92f, 0.92f, 0.92f, 1f);
         uiShapeRenderer.rect(seeAugmentsBtnX, seeAugmentsBtnY, seeAugmentsBtnW, seeAugmentsBtnH);
 
-        uiShapeRenderer.setColor(0.5f, 0.5f, 0.5f, 1f);
+        boolean canStartWave = !waveManager.isWaveInProgress() && !waveManager.areAllWavesComplete();
+        uiShapeRenderer.setColor(canStartWave ? new Color(0.2f, 0.65f, 0.2f, 1f) : new Color(0.5f, 0.5f, 0.5f, 1f));
         uiShapeRenderer.rect(playBtnX, playBtnY, playBtnW, playBtnH);
         uiShapeRenderer.end();
 
@@ -1104,11 +1101,12 @@ public class GameScreen implements Screen {
                     seeAugmentsBtnY + seeAugmentsBtnH * 0.78f);
         }
 
-        uiFontLarge.setColor(Color.BLACK);
-        String playText = "PLAY";
+        uiFontLarge.setColor(canStartWave ? Color.WHITE : Color.DARK_GRAY);
+        String playText = waveManager.areAllWavesComplete() ? "DONE"
+                : (waveManager.isWaveInProgress() ? "WAVE " + waveManager.getCurrentWave() : "PLAY");
         glyphLayout.setText(uiFontLarge, playText);
         if (glyphLayout.width > playBtnW - 4f) {
-            uiFont.setColor(Color.BLACK);
+            uiFont.setColor(canStartWave ? Color.WHITE : Color.DARK_GRAY);
             glyphLayout.setText(uiFont, playText);
             uiFont.draw(uiBatch, playText, playBtnX + (playBtnW - glyphLayout.width) * 0.5f,
                     playBtnY + (playBtnH + glyphLayout.height) * 0.5f);
@@ -1933,6 +1931,12 @@ public class GameScreen implements Screen {
         // Update WaveManager
         waveManager.update(delta);
 
+        if (!waveManager.isWaveInProgress() && !waveManager.areAllWavesComplete()) {
+            if (autoplayEnabled) {
+                waveManager.startNextWave();
+            }
+        }
+
         // Update enemies
         for (com.td.game.entities.Enemy enemy : waveManager.getActiveEnemies()) {
             enemy.update(delta);
@@ -2164,6 +2168,9 @@ public class GameScreen implements Screen {
                     return true;
                 }
                 if (isInRect(screenX, flippedY, playBtnX, playBtnY, playBtnW, playBtnH)) {
+                    if (!waveManager.isWaveInProgress() && !waveManager.areAllWavesComplete()) {
+                        waveManager.startNextWave();
+                    }
                     return true;
                 }
                 if (isInRect(screenX, flippedY, autoplayBtnX, autoplayBtnY, autoplayBtnW, autoplayBtnH)) {
