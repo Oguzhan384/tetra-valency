@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.td.game.TowerDefenseGame;
 import com.td.game.map.GameMap;
+import com.td.game.utils.Dreamlo;
 
 public class EndgameScreen implements Screen {
     public enum EndState {
@@ -47,10 +48,12 @@ public class EndgameScreen implements Screen {
     private String statusMessage = "";
     private boolean nicknamePromptOpen;
     private String nicknameDraft = "";
+    private boolean leaderboardSubmitted;
     private static final Color MENU_BASE = new Color(0.95f, 0.72f, 0.29f, 0.94f);
     private static final Color BUTTON_BG = new Color(0.56f, 0.43f, 0.33f, 1f);
 
-    public EndgameScreen(TowerDefenseGame game, EndState endState, GameMap.MapType mapType, int lastWave, float timerSeconds) {
+    public EndgameScreen(TowerDefenseGame game, EndState endState, GameMap.MapType mapType, int lastWave,
+            float timerSeconds) {
         this.game = game;
         this.endState = endState;
         this.mapType = mapType == null ? GameMap.MapType.ELEMENTAL_CASTLE : mapType;
@@ -110,15 +113,15 @@ public class EndgameScreen implements Screen {
         batch.end();
 
         shapes.begin(ShapeRenderer.ShapeType.Filled);
-        drawRoundRect(rootPanel, 30f, MENU_BASE);
+        drawRect(rootPanel, 30f, MENU_BASE);
 
         if (endState == EndState.WIN || endState == EndState.ENDLESS_FINISH) {
-            drawRoundRect(enterLeaderboardBtn, enterLeaderboardBtn.height * 0.5f, BUTTON_BG);
+            drawRect(enterLeaderboardBtn, enterLeaderboardBtn.height * 0.5f, BUTTON_BG);
         }
         if (endState == EndState.WIN) {
-            drawRoundRect(endlessModeBtn, endlessModeBtn.height * 0.5f, BUTTON_BG);
+            drawRect(endlessModeBtn, endlessModeBtn.height * 0.5f, BUTTON_BG);
         }
-        drawRoundRect(mainMenuBtn, mainMenuBtn.height * 0.5f, BUTTON_BG);
+        drawRect(mainMenuBtn, mainMenuBtn.height * 0.5f, BUTTON_BG);
         shapes.end();
 
         batch.begin();
@@ -130,7 +133,8 @@ public class EndgameScreen implements Screen {
             drawCentered(titleFont, "YOU WIN", rootPanel.x, titleBaseline, rootPanel.width);
             titleFont.getData().setScale(1f);
             font.setColor(Color.BLACK);
-            drawCentered(font, "Finish Time: " + formatTimer(timerSeconds), rootPanel.x, detailBaseline, rootPanel.width);
+            drawCentered(font, "Finish Time: " + formatTimer(timerSeconds), rootPanel.x, detailBaseline - 25f,
+                    rootPanel.width);
         } else if (endState == EndState.LOSE) {
             titleFont.setColor(Color.BLACK);
             drawCentered(titleFont, "YOU LOSE", rootPanel.x, titleBaseline, rootPanel.width);
@@ -145,7 +149,8 @@ public class EndgameScreen implements Screen {
 
         font.setColor(Color.BLACK);
         if (endState == EndState.WIN || endState == EndState.ENDLESS_FINISH) {
-            drawCentered(font, "Enter Leaderboard", enterLeaderboardBtn.x, enterLeaderboardBtn.y + 38f, enterLeaderboardBtn.width);
+            drawCentered(font, "Enter Leaderboard", enterLeaderboardBtn.x, enterLeaderboardBtn.y + 38f,
+                    enterLeaderboardBtn.width);
         }
         if (endState == EndState.WIN) {
             drawCentered(font, "Endless Mode", endlessModeBtn.x, endlessModeBtn.y + 38f, endlessModeBtn.width);
@@ -160,10 +165,10 @@ public class EndgameScreen implements Screen {
 
         if (nicknamePromptOpen) {
             shapes.begin(ShapeRenderer.ShapeType.Filled);
-            drawRoundRect(nicknameModal, 24f, new Color(0f, 0f, 0f, 0.92f));
-            drawRoundRect(nicknameInputBox, 14f, Color.WHITE);
-            drawRoundRect(nicknameOkBtn, nicknameOkBtn.height * 0.5f, BUTTON_BG);
-            drawRoundRect(nicknameCancelBtn, nicknameCancelBtn.height * 0.5f, BUTTON_BG);
+            drawRect(nicknameModal, 24f, new Color(0f, 0f, 0f, 0.92f));
+            drawRect(nicknameInputBox, 14f, Color.WHITE);
+            drawRect(nicknameOkBtn, nicknameOkBtn.height * 0.5f, BUTTON_BG);
+            drawRect(nicknameCancelBtn, nicknameCancelBtn.height * 0.5f, BUTTON_BG);
             shapes.end();
 
             batch.begin();
@@ -182,9 +187,10 @@ public class EndgameScreen implements Screen {
             drawCentered(font, "Cancel", nicknameCancelBtn.x, nicknameCancelBtn.y + 34f, nicknameCancelBtn.width);
             batch.end();
         }
+
     }
 
-    private void drawRoundRect(Rectangle r, float radius, Color c) {
+    private void drawRect(Rectangle r, float radius, Color c) {
         shapes.setColor(c);
         shapes.rect(r.x, r.y, r.width, r.height);
     }
@@ -192,6 +198,24 @@ public class EndgameScreen implements Screen {
     private void handleEnterLeaderboard() {
         nicknamePromptOpen = true;
         nicknameDraft = "";
+    }
+
+    private void submitLeaderboardEntry(String name) {
+        if (leaderboardSubmitted) {
+            return;
+        }
+        leaderboardSubmitted = true;
+        if (endState == EndState.WIN) {
+            Dreamlo.uploadTimeScore(name, timerSeconds, mapType);
+            game.setScreen(new WinLeaderboardScreen(game, mapType, name, timerSeconds));
+            dispose();
+            return;
+        }
+        if (endState == EndState.ENDLESS_FINISH) {
+            Dreamlo.uploadWaveScore(name, lastWave, mapType);
+            game.setScreen(new EndlessLeaderboardScreen(game, mapType));
+            dispose();
+        }
     }
 
     private String formatTimer(float secondsTotal) {
@@ -213,6 +237,8 @@ public class EndgameScreen implements Screen {
         }
         FreeTypeFontGenerator gen = new FreeTypeFontGenerator(file);
         FreeTypeFontGenerator.FreeTypeFontParameter p = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        p.characters = FreeTypeFontGenerator.DEFAULT_CHARS
+                + "\u00e7\u011f\u0131\u015f\u00f6\u00fc\u00c7\u011e\u0130\u015e\u00d6\u00dc";
         p.size = size;
         p.color = Color.WHITE;
         BitmapFont out = gen.generateFont(p);
@@ -280,8 +306,9 @@ public class EndgameScreen implements Screen {
             if (nicknamePromptOpen) {
                 if (keycode == Input.Keys.ENTER) {
                     String name = nicknameDraft.trim().isEmpty() ? "Player" : nicknameDraft.trim();
-                    statusMessage = "Nickname entered: " + name;
+                    statusMessage = "Score submitted: " + name;
                     nicknamePromptOpen = false;
+                    submitLeaderboardEntry(name);
                     return true;
                 }
                 if (keycode == Input.Keys.ESCAPE) {
@@ -322,15 +349,16 @@ public class EndgameScreen implements Screen {
             if (nicknamePromptOpen) {
                 if (nicknameOkBtn.contains(screenX, y)) {
                     String name = nicknameDraft.trim().isEmpty() ? "Player" : nicknameDraft.trim();
-                    statusMessage = "Nickname entered: " + name;
+                    statusMessage = "Score submitted: " + name;
                     nicknamePromptOpen = false;
+                    submitLeaderboardEntry(name);
                     return true;
                 }
                 if (nicknameCancelBtn.contains(screenX, y)) {
                     nicknamePromptOpen = false;
                     return true;
                 }
-                
+
                 return true;
             }
 
@@ -357,4 +385,3 @@ public class EndgameScreen implements Screen {
         }
     }
 }
-

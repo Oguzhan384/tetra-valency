@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.td.game.TowerDefenseGame;
 import com.td.game.map.GameMap;
+import com.td.game.utils.Dreamlo;
 
 public class EndlessLeaderboardScreen implements Screen {
     private final TowerDefenseGame game;
@@ -27,6 +28,8 @@ public class EndlessLeaderboardScreen implements Screen {
     private GlyphLayout glyph;
     private Texture bgTexture;
     private Rectangle backBtn;
+    private String[][] entries = new String[0][0];
+    private boolean loaded;
 
     public EndlessLeaderboardScreen(TowerDefenseGame game, GameMap.MapType mapType) {
         this.game = game;
@@ -42,6 +45,11 @@ public class EndlessLeaderboardScreen implements Screen {
         glyph = new GlyphLayout();
         bgTexture = loadTextureSafe("ui/main_menu_bg.png");
         backBtn = new Rectangle(40f, 32f, 170f, 52f);
+        loaded = false;
+        Dreamlo.fetchScores(false, mapType, data -> Gdx.app.postRunnable(() -> {
+            entries = data == null ? new String[0][0] : data;
+            loaded = true;
+        }));
         Gdx.input.setInputProcessor(new InputHandler());
     }
 
@@ -71,8 +79,9 @@ public class EndlessLeaderboardScreen implements Screen {
 
         float y = h - 140f;
         int idx = 1;
-        for (LeaderboardStore.EndlessEntry e : LeaderboardStore.getEndlessEntries()) {
-            String line = idx + ". " + e.name + " - Wave " + e.wave;
+        for (String[] e : entries) {
+            int wave = parseIntSafe(e[1]);
+            String line = idx + ". " + e[0] + " - Wave " + wave;
             font.setColor(Color.WHITE);
             drawCentered(font, line, 0f, y, w);
             y -= 42f;
@@ -81,7 +90,7 @@ public class EndlessLeaderboardScreen implements Screen {
                 break;
         }
         if (idx == 1) {
-            drawCentered(font, "No entries yet.", 0f, y, w);
+            drawCentered(font, loaded ? "No entries yet." : "Loading...", 0f, y, w);
         }
         font.setColor(new Color(0.14f, 0.1f, 0.06f, 1f));
         drawCentered(font, "Back", backBtn.x, backBtn.y + 34f, backBtn.width);
@@ -93,6 +102,14 @@ public class EndlessLeaderboardScreen implements Screen {
         f.draw(batch, text, x + (width - glyph.width) * 0.5f, baselineY);
     }
 
+    private int parseIntSafe(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     private BitmapFont createFont(String path, int size) {
         FileHandle file = resolveAsset(path);
         if (!file.exists()) {
@@ -100,6 +117,8 @@ public class EndlessLeaderboardScreen implements Screen {
         }
         FreeTypeFontGenerator gen = new FreeTypeFontGenerator(file);
         FreeTypeFontGenerator.FreeTypeFontParameter p = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        p.characters = FreeTypeFontGenerator.DEFAULT_CHARS
+                + "\u00e7\u011f\u0131\u015f\u00f6\u00fc\u00c7\u011e\u0130\u015e\u00d6\u00dc";
         p.size = size;
         p.color = Color.WHITE;
         BitmapFont out = gen.generateFont(p);
@@ -186,4 +205,3 @@ public class EndlessLeaderboardScreen implements Screen {
         }
     }
 }
-
