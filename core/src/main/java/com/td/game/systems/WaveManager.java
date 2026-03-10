@@ -7,6 +7,8 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
 import com.td.game.elements.Element;
 import com.td.game.entities.*;
 import com.td.game.utils.ModelFactory;
@@ -27,6 +29,7 @@ public class WaveManager implements Disposable {
     private Array<Enemy> activeEnemies;
     private ModelFactory modelFactory;
     private final Array<Integer> photoEnemyTypes;
+    private JsonValue wavesData;
 
     private static final int TYPE_PINK_BLOB = 0;
     private static final int TYPE_GOLEM = 1;
@@ -56,6 +59,16 @@ public class WaveManager implements Disposable {
         photoEnemyTypes.add(TYPE_BAT);
 
         demonModel = modelFactory.loadDemonModel();
+
+        try {
+            JsonReader parser = new JsonReader();
+            JsonValue root = parser.parse(Gdx.files.internal("data/waves.json"));
+            this.wavesData = root.get("waves");
+            Gdx.app.log("WaveManager", "Loaded waves.json successfully");
+        } catch (Exception e) {
+            Gdx.app.error("WaveManager", "Failed to load waves.json: " + e.getMessage());
+            this.wavesData = null;
+        }
     }
 
     public void startNextWave() {
@@ -75,7 +88,22 @@ public class WaveManager implements Disposable {
                 currentWave, enemiesInWave, spawnInterval));
     }
 
+    private JsonValue getWaveConfig(int wave) {
+        if (wavesData != null) {
+            for (JsonValue w : wavesData) {
+                if (w.getInt("wave") == wave) {
+                    return w;
+                }
+            }
+        }
+        return null;
+    }
+
     public int getEnemiesForWave(int wave) {
+        JsonValue config = getWaveConfig(wave);
+        if (config != null) {
+            return config.getInt("enemyCount", 10 + (wave * 2));
+        }
         if (wave == 50) {
             return 1;
         }
@@ -83,6 +111,10 @@ public class WaveManager implements Disposable {
     }
 
     private float getSpawnIntervalForWave(int wave) {
+        JsonValue config = getWaveConfig(wave);
+        if (config != null) {
+            return config.getFloat("spawnInterval", Math.max(0.8f, 2.0f - (wave * 0.05f)));
+        }
         // Faster spawning as waves progress
         return Math.max(0.8f, 2.0f - (wave * 0.05f));
     }
@@ -118,51 +150,57 @@ public class WaveManager implements Disposable {
     }
 
     private Enemy createEnemyForWave(int wave, int index) {
-        if (wave == 50) {
-            DemonEnemy boss = new DemonEnemy(5000f, 0.4f, 1000);
-            boss.setModel(demonModel);
-            boss.setVisualScaleMultiplier(4.0f);
-            return boss;
+        JsonValue config = getWaveConfig(wave);
+        Array<String> types = new Array<>();
+        if (config != null && config.has("types")) {
+            for (JsonValue t : config.get("types")) {
+                types.add(t.asString());
+            }
+        } else {
+            if (wave == 50) {
+                types.add("TYPE_DEMON");
+            } else {
+                types.add("TYPE_PINK_BLOB");
+                if (wave > 5)
+                    types.add("TYPE_BAT");
+                if (wave > 15)
+                    types.add("TYPE_GOLEM");
+            }
         }
 
-        if (photoEnemyTypes.size == 0) {
-            throw new IllegalStateException("No enemy models found");
-        }
-
-        int type = photoEnemyTypes.get(index % photoEnemyTypes.size);
+        String typeStr = types.get(index % types.size);
         Enemy enemy;
 
         float healthMult = 1f + (wave * 0.15f);
         float speedMult = Math.min(1.5f, 1f + (wave * 0.01f));
 
-        switch (type) {
-            case TYPE_PINK_BLOB:
-                enemy = new PinkBlobEnemy(
-                        55f * healthMult,
-                        1.2f * speedMult,
-                        Math.round(10 * (1 + wave * 0.1f)));
-                enemy.setModel(pinkBlobModel);
-                enemy.setVisualScaleMultiplier(1.2f);
-                break;
-
-            case TYPE_GOLEM:
-                enemy = new GolemEnemy(
-                        220f * healthMult,
-                        0.6f * speedMult,
-                        Math.round(40 * (1 + wave * 0.1f)));
-                enemy.setModel(golemModel);
-                enemy.setVisualScaleMultiplier(3.0f);
-                break;
-
-            case TYPE_BAT:
-            default:
-                enemy = new BatEnemy(
-                        100f * healthMult,
-                        1.3f * speedMult,
-                        Math.round(30 * (1 + wave * 0.1f)));
-                enemy.setModel(batModel);
-                enemy.setVisualScaleMultiplier(1.3f);
-                break;
+        if ("TYPE_DEMON".equals(typeStr)) {
+            DemonEnemy boss = new DemonEnemy(5000f * healthMult, 0.4f * Math.min(1.2f, speedMult),
+                    Math.round(1000 * (1 + wave * 0.1f)));
+            boss.setModel(demonModel);
+            boss.setVisualScaleMultiplier(4.0f);
+            enemy = boss;
+        } else if ("TYPE_GOLEM".equals(typeStr)) {
+            enemy = new GolemEnemy(
+                    220f * healthMult,
+                    0.6f * speedMult,
+                    Math.round(40 * (1 + wave * 0.1f)));
+            enemy.setModel(golemModel);
+            enemy.setVisualScaleMultiplier(3.0f);
+        } else if ("TYPE_BAT".equals(typeStr)) {
+            enemy = new BatEnemy(
+                    100f * healthMult,
+                    1.3f * speedMult,
+                    Math.round(30 * (1 + wave * 0.1f)));
+            enemy.setModel(batModel);
+            enemy.setVisualScaleMultiplier(1.3f);
+        } else { // TYPE_PINK_BLOB
+            enemy = new PinkBlobEnemy(
+                    55f * healthMult,
+                    1.2f * speedMult,
+                    Math.round(10 * (1 + wave * 0.1f)));
+            enemy.setModel(pinkBlobModel);
+            enemy.setVisualScaleMultiplier(1.2f);
         }
 
         Element randomElement = Element.values()[MathUtils.random(Element.values().length - 1)];
