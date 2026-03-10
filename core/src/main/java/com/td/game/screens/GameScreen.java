@@ -175,21 +175,20 @@ public class GameScreen implements Screen {
     private float staffAuraRadius = 8f;
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
-    private static final float GATE_MODEL_SCALE_MULTIPLIER = 3f;
-
     public GameScreen(TowerDefenseGame game) {
-        this(game, GameMap.MapType.ELEMENTAL_CASTLE);
+        this(game, GameMap.MapType.ELEMENTAL_CASTLE, false);
     }
 
-    private float coreBobTimer = 0f;
-    private float coreBaseX = 0f;
-    private float coreBaseY = 1.2f;
-    private float coreBaseZ = 0f;
-    private float coreScale = 1f;
-
     public GameScreen(TowerDefenseGame game, GameMap.MapType mapType) {
+        this(game, mapType, false);
+    }
+
+    private boolean loadFromSave;
+
+    public GameScreen(TowerDefenseGame game, GameMap.MapType mapType, boolean loadFromSave) {
         this.game = game;
         this.mapType = mapType == null ? GameMap.MapType.ELEMENTAL_CASTLE : mapType;
+        this.loadFromSave = loadFromSave;
     }
 
     @Override
@@ -391,6 +390,10 @@ public class GameScreen implements Screen {
         autoplayEnabled = false;
 
         game.audio.playMapMusic(mapType);
+
+        if (this.loadFromSave) {
+            loadGame();
+        }
     }
 
     private void createModels() {
@@ -1643,6 +1646,91 @@ public class GameScreen implements Screen {
         }
     }
 
+    private void giveRandomAugment() {
+        int r = MathUtils.random(1, 4);
+        applyAugment(r);
+    }
+
+    private void saveGameState() {
+        com.td.game.systems.SaveData data = new com.td.game.systems.SaveData();
+        data.mapType = this.mapType.name();
+        data.globalTimer = this.globalTimer;
+
+        waveManager.save(data);
+        economyManager.save(data);
+        player.save(data);
+        inventory.save(data);
+        staffUI.save(data);
+
+        if (mergeBoard.hasSlot1()) data.mergeSlot1 = mergeBoard.getSlot1Element().name();
+        if (mergeBoard.hasSlot2()) data.mergeSlot2 = mergeBoard.getSlot2Element().name();
+        if (mergeBoard.hasResult()) data.mergeResult = mergeBoard.getResultElement().name();
+
+        this.save(data); 
+
+        data.pillars.clear();
+        for (Pillar p : pillars) {
+            com.td.game.systems.SaveData.PillarSaveData pData = new com.td.game.systems.SaveData.PillarSaveData();
+            p.save(pData);
+            data.pillars.add(pData);
+        }
+
+        com.td.game.systems.SaveManager.save(data, mapType);
+    }
+
+    private void loadGame() {
+        com.td.game.systems.SaveData data = com.td.game.systems.SaveManager.load(mapType);
+        if (data != null) {
+            this.globalTimer = data.globalTimer;
+            waveManager.load(data);
+            economyManager.load(data);
+            player.load(data);
+            inventory.load(data);
+            staffUI.load(data);
+
+            if (data.mergeSlot1 != null) mergeBoard.setSlot1Element(Element.valueOf(data.mergeSlot1));
+            if (data.mergeSlot2 != null) mergeBoard.setSlot2Element(Element.valueOf(data.mergeSlot2));
+            if (data.mergeResult != null) mergeBoard.setResultElement(Element.valueOf(data.mergeResult));
+
+            this.load(data);
+
+            pillars.clear();
+            for (com.td.game.systems.SaveData.PillarSaveData pData : data.pillars) {
+                PillarType pType = PillarType.valueOf(pData.type);
+                Pillar pillar = new Pillar(pType, new Vector3(pData.x, pData.y, pData.z), modelFactory);
+                pillar.load(pData);
+                pillars.add(pillar);
+            }
+            com.badlogic.gdx.Gdx.app.log("GameScreen", "Save file loaded successfully.");
+        } else {
+            com.badlogic.gdx.Gdx.app.error("GameScreen", "No save file found to load.");
+        }
+    }
+
+    public void save(com.td.game.systems.SaveData data) {
+        data.globalDamageMult = this.globalDamageMult;
+        data.globalRangeMult = this.globalRangeMult;
+        data.globalAttackSpeedMult = this.globalAttackSpeedMult;
+        data.staffAuraRadius = this.staffAuraRadius;
+        
+        data.acquiredAugments.clear();
+        for (AcquiredAugment aug : this.acquiredAugments) {
+            data.acquiredAugments.add(aug.id);
+        }
+    }
+
+    public void load(com.td.game.systems.SaveData data) {
+        this.globalDamageMult = data.globalDamageMult;
+        this.globalRangeMult = data.globalRangeMult;
+        this.globalAttackSpeedMult = data.globalAttackSpeedMult;
+        this.staffAuraRadius = data.staffAuraRadius;
+
+        this.acquiredAugments.clear();
+        for (int augId : data.acquiredAugments) {
+            this.acquiredAugments.add(new AcquiredAugment(augId));
+        }
+    }
+
     private void applyAugmentChoice(int option) {
         if (!augmentChoiceActive)
             return;
@@ -1958,10 +2046,12 @@ public class GameScreen implements Screen {
         // Check game over conditions
         if (economyManager.isGameOver()) {
             gameOver = true;
+            com.td.game.systems.SaveManager.deleteSave(mapType);
             return;
         }
         if (waveManager.areAllWavesComplete() && waveManager.getAliveEnemyCount() == 0) {
             gameWon = true;
+            com.td.game.systems.SaveManager.deleteSave(mapType);
             return;
         }
 
@@ -1993,7 +2083,9 @@ public class GameScreen implements Screen {
 
         @Override
         public boolean keyDown(int keycode) {
-            // KeyBindings removed - not available in this version
+            if (com.td.game.input.KeyBindings.handleShortcutKeys(keycode, game, mapType, GameScreen.this)) {
+                return true;
+            }
             if (keycode == Input.Keys.ESCAPE || keycode == Input.Keys.P) {
                 paused = !paused;
                 return true;
@@ -2168,8 +2260,13 @@ public class GameScreen implements Screen {
                     return true;
                 }
                 if (isInRect(screenX, flippedY, playBtnX, playBtnY, playBtnW, playBtnH)) {
-                    if (!waveManager.isWaveInProgress() && !waveManager.areAllWavesComplete()) {
-                        waveManager.startNextWave();
+                    if (!waveManager.isWaveInProgress()) {
+                        if (waveManager.areAllWavesComplete()) {
+                            gameWon = true;
+                        } else if (!augmentChoiceActive) {
+                            showAugmentSelection();
+                            saveGameState();
+                        }
                     }
                     return true;
                 }

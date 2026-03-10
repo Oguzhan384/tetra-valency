@@ -234,6 +234,12 @@ public class WaveManager implements Disposable {
         }
     }
 
+    public void killAllEnemies() {
+        for (Enemy enemy : activeEnemies) {
+            enemy.takeDamage(enemy.getMaxHealth() * 100);
+        }
+    }
+
     public int getCurrentWave() {
         return currentWave;
     }
@@ -256,6 +262,16 @@ public class WaveManager implements Disposable {
 
     public int getEnemiesRemaining() {
         return (enemiesInWave - enemiesSpawned) + getAliveEnemyCount();
+    }
+
+    public void save(SaveData data) {
+        data.currentWave = this.currentWave;
+        data.enemiesSpawned = this.enemiesSpawned;
+    }
+
+    public void load(SaveData data) {
+        this.currentWave = data.currentWave;
+        this.enemiesSpawned = data.enemiesSpawned;
     }
 
     @Override

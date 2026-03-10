@@ -67,6 +67,16 @@ public class EconomyManager implements Disposable {
         this.lives = Constants.STARTING_LIVES;
     }
 
+    public void save(SaveData data) {
+        data.gold = this.gold;
+        data.lives = this.lives;
+    }
+
+    public void load(SaveData data) {
+        this.gold = data.gold;
+        this.lives = data.lives;
+    }
+
     @Override
     public void dispose() {
         

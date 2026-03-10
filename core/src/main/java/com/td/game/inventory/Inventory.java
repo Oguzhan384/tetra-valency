@@ -269,8 +269,33 @@ public class Inventory implements Disposable {
         return slotSize;
     }
 
-    public float getPadding() {
-        return padding;
+    public void save(com.td.game.systems.SaveData data) {
+        data.inventoryOrbs.clear();
+        for (int i = 0; i < MAX_ORBS; i++) {
+            if (slots[i] != null) {
+                data.inventoryOrbs.add(slots[i].name());
+            } else {
+                data.inventoryOrbs.add(null);
+            }
+        }
+        data.unlockedInventorySlots = this.unlockedSlots;
+    }
+
+    public void load(com.td.game.systems.SaveData data) {
+        this.clear();
+        this.unlockedSlots = data.unlockedInventorySlots;
+        if (this.unlockedSlots == 0) {
+            this.unlockedSlots = 3; 
+        }
+
+        for (int i = 0; i < MAX_ORBS && i < data.inventoryOrbs.size; i++) {
+            String orbName = data.inventoryOrbs.get(i);
+            if (orbName != null && !orbName.isEmpty()) {
+                slots[i] = Element.valueOf(orbName);
+            } else {
+                slots[i] = null;
+            }
+        }
     }
 
     @Override
