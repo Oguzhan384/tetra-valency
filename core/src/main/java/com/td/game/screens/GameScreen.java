@@ -836,7 +836,7 @@ public class GameScreen implements Screen {
         glyphLayout.setText(uiFontLarge, livesStr);
         float livesEndX = 70f * uiScale + glyphLayout.width;
 
-        String waveText = "WAVE " + currentWave + "/" + maxWaves;
+        String waveText = "WAVE " + (waveManager != null ? waveManager.getCurrentWave() : 0) + "/" + maxWaves;
         glyphLayout.setText(uiFontLarge, waveText);
         float waveStartX = mapAreaWidth - glyphLayout.width - 28f * uiScale;
         uiFontLarge.setColor(hudTopColor);
@@ -1107,7 +1107,7 @@ public class GameScreen implements Screen {
         uiShapeRenderer.rect(seeAugmentsBtnX, seeAugmentsBtnY, seeAugmentsBtnW, seeAugmentsBtnH);
 
         boolean canStartWave = !waveManager.isWaveInProgress() && !waveManager.areAllWavesComplete();
-        uiShapeRenderer.setColor(canStartWave ? new Color(0.56f, 0.43f, 0.33f, 1f) : new Color(0.5f, 0.5f, 0.5f, 1f));
+        uiShapeRenderer.setColor(canStartWave ? Color.WHITE : new Color(0.5f, 0.5f, 0.5f, 1f));
         uiShapeRenderer.rect(playBtnX, playBtnY, playBtnW, playBtnH);
         uiShapeRenderer.end();
 
@@ -1126,12 +1126,12 @@ public class GameScreen implements Screen {
                     seeAugmentsBtnY + seeAugmentsBtnH * 0.78f);
         }
 
-        uiFontLarge.setColor(canStartWave ? Color.WHITE : Color.DARK_GRAY);
+        uiFontLarge.setColor(canStartWave ? Color.BLACK : Color.DARK_GRAY);
         String playText = waveManager.areAllWavesComplete() ? "DONE"
                 : (waveManager.isWaveInProgress() ? "WAVE " + waveManager.getCurrentWave() : "PLAY");
         glyphLayout.setText(uiFontLarge, playText);
         if (glyphLayout.width > playBtnW - 4f) {
-            uiFont.setColor(canStartWave ? Color.WHITE : Color.DARK_GRAY);
+            uiFont.setColor(canStartWave ? Color.BLACK : Color.DARK_GRAY);
             glyphLayout.setText(uiFont, playText);
             uiFont.draw(uiBatch, playText, playBtnX + (playBtnW - glyphLayout.width) * 0.5f,
                     playBtnY + (playBtnH + glyphLayout.height) * 0.5f);
@@ -2152,6 +2152,7 @@ public class GameScreen implements Screen {
                 } else if (inventory.hasSelection()) {
                     inventory.cancelSelection();
                 } else {
+                    saveGameState();
                     Gdx.app.exit();
                 }
                 return true;
@@ -2221,10 +2222,12 @@ public class GameScreen implements Screen {
                 } else if (isInRect(screenX, flippedY, btnX, menuY, btnW, btnH)) {
                     game.audio.playClick();
                     game.audio.playMenuMusic();
+                    saveGameState();
                     game.setScreen(new MainMenuScreen(game));
                     dispose();
                 } else if (isInRect(screenX, flippedY, btnX, quitY, btnW, btnH)) {
                     game.audio.playClick();
+                    saveGameState();
                     Gdx.app.exit();
                 }
                 return true;
@@ -2295,6 +2298,7 @@ public class GameScreen implements Screen {
                         if (waveManager.areAllWavesComplete()) {
                             gameWon = true;
                         } else if (!augmentChoiceActive) {
+                            saveGameState();
                             waveManager.startNextWave();
                         }
                     }
