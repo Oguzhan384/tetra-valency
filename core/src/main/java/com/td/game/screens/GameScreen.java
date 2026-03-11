@@ -2594,7 +2594,11 @@ public class GameScreen implements Screen {
         mergeBoard.setSlotSize(invSlot);
 
         float staffX = width - shopWidth + (shopWidth - staffSize) * 0.5f;
-        staffUI = new WizardStaffUI((int) staffX, (int) staffY, (int) staffSize, (int) staffSize);
+        if (staffUI == null) {
+            staffUI = new WizardStaffUI((int) staffX, (int) staffY, (int) staffSize, (int) staffSize);
+        } else {
+            staffUI.setBounds((int) staffX, (int) staffY, (int) staffSize, (int) staffSize);
+        }
     }
 
     private float calculateShopWidth(int screenWidth) {
