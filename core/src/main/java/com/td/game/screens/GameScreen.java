@@ -1128,7 +1128,7 @@ public class GameScreen implements Screen {
 
         uiFontLarge.setColor(canStartWave ? Color.BLACK : Color.DARK_GRAY);
         String playText = waveManager.areAllWavesComplete() ? "DONE"
-                : (waveManager.isWaveInProgress() ? "WAVE " + waveManager.getCurrentWave() : "PLAY");
+                : (waveManager.isWaveInProgress() ? "" : "PLAY");
         glyphLayout.setText(uiFontLarge, playText);
         if (glyphLayout.width > playBtnW - 4f) {
             uiFont.setColor(canStartWave ? Color.BLACK : Color.DARK_GRAY);
