@@ -3,7 +3,6 @@ package com.td.game.systems;
 import com.badlogic.gdx.utils.Disposable;
 import com.td.game.utils.Constants;
 
-
 public class EconomyManager implements Disposable {
 
     private int gold;
@@ -27,6 +26,10 @@ public class EconomyManager implements Disposable {
     }
 
     public void earn(int amount) {
+        gold += amount;
+    }
+
+    public void earn(float amount) {
         gold += amount;
     }
 
@@ -79,7 +82,6 @@ public class EconomyManager implements Disposable {
 
     @Override
     public void dispose() {
-        
+
     }
 }
-
