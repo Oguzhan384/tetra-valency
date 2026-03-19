@@ -7,8 +7,12 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.Array;
 import com.td.game.elements.Element;
+import com.td.game.entities.Enemy;
+import com.td.game.entities.Projectile;
 import com.td.game.utils.ModelFactory;
+import com.td.game.pillars.PillarData;
 
 public class Pillar implements Disposable {
     private final PillarType type;
@@ -20,10 +24,16 @@ public class Pillar implements Disposable {
     private ModelInstance pillarModelInstance;
     private final ModelFactory modelFactory;
 
-    private final float baseRange = 5f * (com.td.game.utils.Constants.TILE_SIZE / 2.0f);
     private float bonusDamageMult = 1f;
     private float bonusRangeMult = 1f;
     private float bonusAttackSpeedMult = 1f;
+
+    private float currentCooldown = 0f;
+    private final float baseAttackCooldown = PillarData.BASE_ATTACK_COOLDOWN;
+    private final float baseDamage = PillarData.BASE_DAMAGE;
+
+    private Enemy focusTarget = null;
+    private float focusTimer = 0f;
 
     public Pillar(PillarType type, Vector3 position, ModelFactory modelFactory) {
         this.type = type;
@@ -78,9 +88,87 @@ public class Pillar implements Disposable {
         return true;
     }
 
-    public void update(float delta) {
-        if (!active)
+    public void update(float delta, com.badlogic.gdx.utils.Array<com.td.game.entities.Enemy> enemies, com.badlogic.gdx.utils.Array<com.td.game.entities.Projectile> projectiles) {
+        if (!active || currentElement == null)
             return;
+
+        // Gold pillar generates gold passively
+        if (currentElement == Element.GOLD) {
+            // Gold logic handled in GameScreen or separate timer? Let's add it here.
+            // But we need a reference to economyManager.
+            return;
+        }
+
+        currentCooldown -= delta;
+
+        if (currentCooldown <= 0) {
+            com.td.game.entities.Enemy target = findTarget(enemies);
+            if (target != null) {
+                attack(target, projectiles);
+                currentCooldown = getActualAttackCooldown();
+            }
+        }
+    }
+
+    private com.td.game.entities.Enemy findTarget(com.badlogic.gdx.utils.Array<com.td.game.entities.Enemy> enemies) {
+        com.td.game.entities.Enemy closest = null;
+        float minDist = getAttackRange();
+
+        for (com.td.game.entities.Enemy enemy : enemies) {
+            if (!enemy.isAlive()) continue;
+            float dist = position.dst(enemy.getPosition());
+            if (dist < minDist) {
+                minDist = dist;
+                closest = enemy;
+            }
+        }
+        return closest;
+    }
+
+    private void attack(com.td.game.entities.Enemy target, com.badlogic.gdx.utils.Array<com.td.game.entities.Projectile> projectiles) {
+        float damage = getActualDamage();
+        
+        // Ramping damage for FIRE
+        if (currentElement == Element.FIRE) {
+            if (focusTarget == target) {
+                focusTimer += 0.2f; // Increase focus
+                damage *= (1f + focusTimer);
+            } else {
+                focusTarget = target;
+                focusTimer = 0f;
+            }
+        }
+
+        // Special case for LIGHT: Beam (handled as projectile for now for visual consistency, or instant effect)
+        if (currentElement == Element.LIGHT) {
+            float hpPercent = target.getHealth() / target.getMaxHealth();
+            float bonusDamage = damage * (hpPercent * 2f); 
+            target.takeDamage(damage + bonusDamage, currentElement);
+            // We can still spawn a fast beam-like projectile
+        }
+
+        // Spawn Projectile
+        Model projectileModel = modelFactory.getProjectileModel(currentElement);
+        ModelInstance mi = new ModelInstance(projectileModel);
+        if (currentElement == Element.LIGHT) {
+            mi.transform.scl(0.1f, 1.0f, 0.1f); // Thin beam
+        } else {
+            mi.transform.scl(0.5f);
+        }
+        projectiles.add(new com.td.game.entities.Projectile(position.cpy().add(0, 2f, 0), target, currentElement, damage, 25f, mi));
+    }
+
+    private float getActualDamage() {
+        float tierMult = (currentElement != null && !currentElement.isPrime()) ? PillarData.TIER_HYBRID_DAMAGE_MULT : PillarData.TIER_PRIME_DAMAGE_MULT;
+        return baseDamage * type.getDamageMult() * bonusDamageMult * tierMult;
+    }
+
+    private float getActualAttackCooldown() {
+        return baseAttackCooldown / (type.getAttackSpeedMult() * bonusAttackSpeedMult);
+    }
+
+    public void update(float delta) {
+        // Legacy update, logic moved to update(delta, enemies, projectiles)
     }
 
     public void render(ModelBatch modelBatch, Environment environment) {
@@ -106,7 +194,7 @@ public class Pillar implements Disposable {
     }
 
     public float getAttackRange() {
-        return baseRange * type.getRangeMult() * bonusRangeMult;
+        return PillarData.BASE_RANGE * type.getRangeMult() * bonusRangeMult;
     }
 
     public boolean canAcceptOrb() {
