@@ -13,12 +13,14 @@ public class Projectile {
     private final float speed;
     private final Element element;
     private final float damage;
+    private final boolean poisonCharmActive;
     private boolean alive;
     private boolean impacted;
 
     private ModelInstance modelInstance;
 
-    public Projectile(Vector3 startPos, Enemy targetEnemy, Element element, float damage, float speed, ModelInstance modelInstance) {
+    public Projectile(Vector3 startPos, Enemy targetEnemy, Element element, float damage, float speed, ModelInstance modelInstance,
+            boolean poisonCharmActive) {
         this.position = startPos.cpy();
         this.targetEnemy = targetEnemy;
         this.targetPos = targetEnemy.getPosition().cpy();
@@ -26,6 +28,7 @@ public class Projectile {
         this.damage = damage;
         this.speed = speed;
         this.modelInstance = modelInstance;
+        this.poisonCharmActive = poisonCharmActive;
         this.alive = true;
         this.impacted = false;
     }
@@ -80,6 +83,10 @@ public class Projectile {
 
     public float getDamage() {
         return damage;
+    }
+
+    public boolean isPoisonCharmActive() {
+        return poisonCharmActive;
     }
 
     public Vector3 getPosition() {

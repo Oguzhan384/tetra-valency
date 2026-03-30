@@ -3179,6 +3179,11 @@ public class GameScreen implements Screen {
             default:
                 break;
         }
+
+        // Poison charm: attacks from aura-boosted pillars reduce enemy healing by 40% per stack.
+        if (proj.isPoisonCharmActive()) {
+            target.applyRegenReduction(5.1f, 0.40f, 1);
+        }
     }
 
     private void spawnEffect(Vector3 pos, Element element, float lifetime, float scale) {
@@ -3229,6 +3234,7 @@ public class GameScreen implements Screen {
                 float dmgBuff = 1f;
                 float spdBuff = 1f;
                 float rngBuff = 1f;
+                boolean poisonCharm = false;
 
                 if (equipped != null) {
                     switch (equipped) {
@@ -3236,12 +3242,15 @@ public class GameScreen implements Screen {
                         case FIRE: dmgBuff = 1.25f; break; // +25% Damage
                         case WATER: rngBuff = 1.25f; break; // +25% Range
                         case LIFE: dmgBuff = 1.5f; break; // Massive Damage Bonus
+                        case POISON: poisonCharm = true; break; // Heal reduction on hit
                         default: break;
                     }
                 }
                 p.setExternalMultipliers(dmgBuff, rngBuff, spdBuff);
+                p.setPoisonCharmActive(poisonCharm);
             } else {
                 p.setExternalMultipliers(1f, 1f, 1f);
+                p.setPoisonCharmActive(false);
             }
         }
     }

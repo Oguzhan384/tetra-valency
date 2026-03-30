@@ -7,12 +7,9 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.Array;
 import com.td.game.elements.Element;
 import com.td.game.entities.Enemy;
-import com.td.game.entities.Projectile;
 import com.td.game.utils.ModelFactory;
-import com.td.game.pillars.PillarData;
 
 public class Pillar implements Disposable {
     private final PillarType type;
@@ -27,6 +24,7 @@ public class Pillar implements Disposable {
     private float bonusDamageMult = 1f;
     private float bonusRangeMult = 1f;
     private float bonusAttackSpeedMult = 1f;
+    private boolean poisonCharmActive = false;
 
     private float currentCooldown = 0f;
     private final float baseAttackCooldown = PillarData.BASE_ATTACK_COOLDOWN;
@@ -155,7 +153,8 @@ public class Pillar implements Disposable {
         } else {
             mi.transform.scl(0.5f);
         }
-        projectiles.add(new com.td.game.entities.Projectile(position.cpy().add(0, 2f, 0), target, currentElement, damage, 25f, mi));
+        projectiles.add(new com.td.game.entities.Projectile(position.cpy().add(0, 2f, 0), target, currentElement, damage, 25f, mi,
+            poisonCharmActive));
     }
 
     private float getActualDamage() {
@@ -227,6 +226,10 @@ public class Pillar implements Disposable {
         bonusDamageMult = d;
         bonusRangeMult = r;
         bonusAttackSpeedMult = s;
+    }
+
+    public void setPoisonCharmActive(boolean poisonCharmActive) {
+        this.poisonCharmActive = poisonCharmActive;
     }
 
     public void save(com.td.game.systems.SaveData.PillarSaveData pData) {

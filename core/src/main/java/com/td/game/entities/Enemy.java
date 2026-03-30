@@ -77,6 +77,9 @@ public class Enemy implements Disposable {
     protected float greedMultiplier = 1f;
 
     protected float regenBlockTimer;
+    protected float regenReductionTimer;
+    protected float regenReductionPerStack;
+    protected int regenReductionStacks;
 
     protected float knockbackDistance;
     protected Vector3 knockbackVelocity;
@@ -123,6 +126,9 @@ public class Enemy implements Disposable {
         this.confusionSpeedVariance = 0;
         this.greedMultiplier = 1f;
         this.regenBlockTimer = 0;
+        this.regenReductionTimer = 0;
+        this.regenReductionPerStack = 0f;
+        this.regenReductionStacks = 0;
         this.knockbackDistance = 0;
         this.knockbackVelocity = new Vector3();
         this.knockbackDuration = 0;
@@ -464,6 +470,14 @@ public class Enemy implements Disposable {
         if (regenBlockTimer > 0) {
             regenBlockTimer -= deltaTime;
         }
+
+        if (regenReductionTimer > 0) {
+            regenReductionTimer -= deltaTime;
+            if (regenReductionTimer <= 0f) {
+                regenReductionTimer = 0f;
+                regenReductionStacks = 0;
+            }
+        }
     }
 
     public void takeDamage(float damage) {
@@ -578,6 +592,12 @@ public class Enemy implements Disposable {
         this.regenBlockTimer = duration;
     }
 
+    public void applyRegenReduction(float duration, float reductionPerStack, int stacks) {
+        this.regenReductionTimer = Math.max(this.regenReductionTimer, duration);
+        this.regenReductionPerStack = Math.max(this.regenReductionPerStack, reductionPerStack);
+        this.regenReductionStacks = Math.min(this.regenReductionStacks + Math.max(1, stacks), 10);
+    }
+
     public void applyKnockback(float distance) {
         this.knockbackDistance = distance;
         
@@ -679,6 +699,14 @@ public class Enemy implements Disposable {
 
     public boolean hasRegenBlock() {
         return regenBlockTimer > 0;
+    }
+
+    public float getRegenMultiplier() {
+        if (regenReductionTimer <= 0f || regenReductionStacks <= 0) {
+            return 1f;
+        }
+        float reduced = 1f - (regenReductionPerStack * regenReductionStacks);
+        return Math.max(0f, reduced);
     }
 
     public int getPoisonStacks() {
