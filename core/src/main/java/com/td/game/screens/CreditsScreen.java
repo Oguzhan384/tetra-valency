@@ -7,7 +7,6 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -27,14 +26,6 @@ public class CreditsScreen implements Screen {
     private BitmapFont titleFont;
     private GlyphLayout glyph;
 
-    private Texture bgTexture;
-    private Texture logoTexture;
-    private Texture githubBadgeTexture;
-    private Texture libgdxBadgeTexture;
-    private Texture gradleBadgeTexture;
-    private Texture dreamloBadgeTexture;
-
-    private Rectangle rootPanel;
     private Rectangle crawlArea;
     private Rectangle backBtn;
 
@@ -47,24 +38,17 @@ public class CreditsScreen implements Screen {
 
     private static final float CRAWL_SPEED = 42f;
     private static final float SCROLL_STEP = 38f;
-    private static final float LOGO_SIZE = 140f;
     private static final float SECTION_GAP = 28f;
     private static final float LINE_GAP = 22f;
-
-    private enum IconKind {
-        NONE, GITHUB, LIBGDX, GRADLE, DREAMLO
-    }
 
     private static class CreditLine {
         final String text;
         final String url;
-        final IconKind icon;
         final boolean heading;
 
-        CreditLine(String text, String url, IconKind icon, boolean heading) {
+        CreditLine(String text, String url, boolean heading) {
             this.text = text;
             this.url = url;
-            this.icon = icon;
             this.heading = heading;
         }
 
@@ -95,17 +79,6 @@ public class CreditsScreen implements Screen {
         titleFont = createFont("fonts/font_game_screen.ttf", scaledFontSize(40));
         glyph = new GlyphLayout();
 
-        bgTexture = loadTextureSafe("ui/main_menu_bg.png");
-        if (bgTexture == null) {
-            bgTexture = loadTextureSafe("ui/augment_screen_bg.png");
-        }
-
-        logoTexture = loadTextureSafe("ui/cosmovision.png");
-        githubBadgeTexture = loadTextureSafe("credits/github.png");
-        libgdxBadgeTexture = loadTextureSafe("credits/libgdx.png");
-        gradleBadgeTexture = loadTextureSafe("credits/gradle.png");
-        dreamloBadgeTexture = loadTextureSafe("credits/dreamlo.png");
-
         teamMembers = new Array<>();
         teamMembers.add("Umit Yusuf GONEN");
         teamMembers.add("Ahmet Efe CANPOLAT");
@@ -123,47 +96,39 @@ public class CreditsScreen implements Screen {
     private Array<CreditLine> createCreditLines() {
         Array<CreditLine> lines = new Array<>();
 
-        lines.add(new CreditLine("Icons", "", IconKind.NONE, true));
-        lines.add(new CreditLine("GitHub-sourced UI/Game Icons", "https://github.com/", IconKind.NONE, false));
+        lines.add(new CreditLine("Fonts", "", true));
+        lines.add(new CreditLine("Paytone One", "https://fonts.google.com/specimen/Paytone+One", false));
 
-        lines.add(new CreditLine("Fonts", "", IconKind.NONE, true));
-        lines.add(new CreditLine("Paytone One", "https://fonts.google.com/specimen/Paytone+One", IconKind.NONE, false));
+        lines.add(new CreditLine("Music", "", true));
+        lines.add(new CreditLine("Background Music (source link pending)", "", false));
 
-        lines.add(new CreditLine("Music", "", IconKind.NONE, true));
-        lines.add(new CreditLine("Background Music (source link pending)", "", IconKind.NONE, false));
+        lines.add(new CreditLine("SFX", "", true));
+        lines.add(new CreditLine("Click sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Error sound effect by Lesiakover", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Casual Click Pop UI 3 sound effect by floraphonic", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("High Speed sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Game Level Complete sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Game Start sound effect by FoxBoy Tails", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Gaming victory sound effect by EAGLAXLE", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Marimba Lose sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("fire magic (6) sound effect by Yodguard", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Crushing shells of eggs sound effect by AudioPapkin", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Damage blowhole sound effect by Prmodrai", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Dramatic Death Collapse sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Spinning Coin on Table sound effect by Universfield", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("success sound effect by freesound_community", "https://pixabay.com/sound-effects/", false));
+        lines.add(new CreditLine("Wood Surface Single Coin Payout sound effect by floraphonic", "https://pixabay.com/sound-effects/", false));
+        
 
-        lines.add(new CreditLine("SFX", "", IconKind.NONE, true));
-        lines.add(new CreditLine("Click sound effect by Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as UI click effect", "", IconKind.NONE, false));
-        lines.add(new CreditLine("Error sound effect by Lesiakover", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as UI click error effect", "", IconKind.NONE, false));
-        lines.add(new CreditLine("Casual Click Pop UI 3 sound effect by floraphonic", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as pause toggle effect", "", IconKind.NONE, false));
-        lines.add(new CreditLine("High Speed sound effect by Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as speed toggle effect", "", IconKind.NONE, false));
-        lines.add(new CreditLine("Game Level Complete sound effect by Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as wave complete effect", "", IconKind.NONE, false));
-        lines.add(new CreditLine("Game Start sound effect by FoxBoy Tails", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as wave start effect", "", IconKind.NONE, false));
-        lines.add(new CreditLine("Gaming victory sound effect by EAGLAXLE", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as victory effect", "", IconKind.NONE, false));
-        lines.add(new CreditLine("Marimba Lose sound effect by Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as lose effect", "", IconKind.NONE, false));
-        lines.add(new CreditLine("fire magic (6) sound effect by Yodguard", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as attack effect", "", IconKind.NONE, false));
-        lines.add(new CreditLine("Crushing shells of eggs sound effect by AudioPapkin", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as core hit effect", "", IconKind.NONE, false));
-        lines.add(new CreditLine("Damage blowhole sound effect by Prmodrai", "https://pixabay.com/sound-effects/", IconKind.NONE, false));
-        lines.add(new CreditLine("Used as enemy hit effect", "", IconKind.NONE, false));
 
-        lines.add(new CreditLine("3D Models", "", IconKind.NONE, true));
-        lines.add(new CreditLine("3D Models (source links pending)", "", IconKind.NONE, false));
+        lines.add(new CreditLine("3D Models", "", true));
+        lines.add(new CreditLine("3D Models (source links pending)", "", false));
 
-        lines.add(new CreditLine("Tools/Libraries", "", IconKind.NONE, true));
-        lines.add(new CreditLine("GitHub", "https://github.com/", IconKind.GITHUB, false));
-        lines.add(new CreditLine("libGDX", "https://libgdx.com/", IconKind.LIBGDX, false));
-        lines.add(new CreditLine("Gradle", "https://gradle.org/", IconKind.GRADLE, false));
-        lines.add(new CreditLine("Dreamlo", "http://dreamlo.com/", IconKind.DREAMLO, false));
+        lines.add(new CreditLine("Tools/Libraries", "", true));
+        lines.add(new CreditLine("GitHub", "https://github.com/", false));
+        lines.add(new CreditLine("libGDX", "https://libgdx.com/", false));
+        lines.add(new CreditLine("Gradle", "https://gradle.org/", false));
+        lines.add(new CreditLine("Dreamlo", "http://dreamlo.com/", false));
 
         return lines;
     }
@@ -172,12 +137,11 @@ public class CreditsScreen implements Screen {
         float w = Gdx.graphics.getWidth();
         float h = Gdx.graphics.getHeight();
 
-        rootPanel = new Rectangle(w * 0.18f, h * 0.06f, w * 0.64f, h * 0.88f);
-        backBtn = new Rectangle(rootPanel.x + 18f, rootPanel.y + 18f, 140f, 48f);
+        backBtn = new Rectangle(18f, 18f, 140f, 48f);
 
-        float crawlY = backBtn.y + backBtn.height + 12f;
-        float crawlH = rootPanel.height - (crawlY - rootPanel.y) - 16f;
-        crawlArea = new Rectangle(rootPanel.x + 24f, crawlY, rootPanel.width - 48f, crawlH);
+        float crawlY = backBtn.y + backBtn.height + 14f;
+        float crawlH = h - crawlY - 14f;
+        crawlArea = new Rectangle(24f, crawlY, w - 48f, crawlH);
 
         crawlContentHeight = calculateCrawlContentHeight();
         if (crawlOffset <= 0f) {
@@ -188,7 +152,6 @@ public class CreditsScreen implements Screen {
     private float calculateCrawlContentHeight() {
         float total = 0f;
 
-        total += LOGO_SIZE + SECTION_GAP;
         total += LINE_GAP * 1.2f; // Credits title
         total += SECTION_GAP * 0.7f;
 
@@ -211,31 +174,23 @@ public class CreditsScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.04f, 0.04f, 0.05f, 1f);
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         updateCrawl(delta);
 
-        float w = Gdx.graphics.getWidth();
-        float h = Gdx.graphics.getHeight();
-
-        if (bgTexture != null) {
-            batch.begin();
-            batch.draw(bgTexture, 0, 0, w, h);
-            batch.end();
-        }
-
         shapes.begin(ShapeRenderer.ShapeType.Filled);
-        drawRect(rootPanel, new Color(0.89f, 0.67f, 0.26f, 0.94f));
-        drawRect(crawlArea, new Color(0.95f, 0.79f, 0.42f, 0.24f));
-        drawRect(backBtn, new Color(0.56f, 0.43f, 0.33f, 1f));
+        drawRect(backBtn, new Color(1f, 1f, 1f, 0.12f));
+        shapes.end();
+
+        shapes.begin(ShapeRenderer.ShapeType.Line);
+        drawRect(backBtn, Color.WHITE);
         shapes.end();
 
         batch.begin();
         linkEntries.clear();
         renderCrawlContent();
-        drawCentered(font, "Back", backBtn.x, backBtn.y + backBtn.height * 0.67f, backBtn.width,
-                new Color(0.14f, 0.1f, 0.06f, 1f));
+        drawCentered(font, "Back", backBtn.x, backBtn.y + backBtn.height * 0.67f, backBtn.width, Color.WHITE);
         batch.end();
     }
 
@@ -249,27 +204,17 @@ public class CreditsScreen implements Screen {
 
     private void renderCrawlContent() {
         float y = crawlArea.y + crawlArea.height + crawlContentHeight - crawlOffset;
-        float centerX = rootPanel.x + rootPanel.width * 0.5f;
 
-        if (logoTexture != null) {
-            float logoX = centerX - LOGO_SIZE * 0.5f;
-            float logoBottom = y - LOGO_SIZE;
-            if (isRectVisible(logoBottom, LOGO_SIZE)) {
-                batch.draw(logoTexture, logoX, logoBottom, LOGO_SIZE, LOGO_SIZE);
-            }
-        }
-        y -= LOGO_SIZE + SECTION_GAP;
-
-        y = drawCenteredLine(titleFont, "Credits", y, new Color(0.23f, 0.15f, 0.08f, 1f), 1.2f);
+        y = drawCenteredLine(titleFont, "Credits", y, Color.WHITE, 1.2f);
         y -= SECTION_GAP * 0.7f;
 
-        y = drawCenteredLine(font, "Team Members", y, new Color(0.40f, 0.28f, 0.14f, 1f), 1f);
+        y = drawCenteredLine(font, "Team Members", y, Color.WHITE, 1f);
         for (String member : teamMembers) {
-            y = drawCenteredLine(font, member, y, new Color(0.14f, 0.1f, 0.06f, 1f), 1f);
+            y = drawCenteredLine(font, member, y, Color.WHITE, 1f);
         }
 
         y -= SECTION_GAP;
-        y = drawCenteredLine(font, "Used Assets", y, new Color(0.40f, 0.28f, 0.14f, 1f), 1f);
+        y = drawCenteredLine(font, "Used Assets", y, Color.WHITE, 1f);
         y -= SECTION_GAP * 0.6f;
 
         float textX = crawlArea.x + 10f;
@@ -277,32 +222,23 @@ public class CreditsScreen implements Screen {
         for (CreditLine line : creditLines) {
             if (line.heading) {
                 if (isLineVisible(y)) {
-                    drawLeft(font, line.text, textX, y, new Color(0.35f, 0.24f, 0.12f, 1f));
+                    drawLeft(font, line.text, textX, y, Color.WHITE);
                 }
                 y -= LINE_GAP;
                 continue;
             }
 
-            float iconSize = 18f;
-            float rowTextX = textX;
-            if (line.icon != IconKind.NONE) {
-                if (isRectVisible(y - iconSize + 3f, iconSize)) {
-                    drawProviderIcon(line.icon, textX, y - iconSize + 3f, iconSize);
-                }
-                rowTextX += 24f;
-            }
-
             if (isLineVisible(y)) {
-                drawLeft(font, line.text, rowTextX, y, new Color(0.14f, 0.1f, 0.06f, 1f));
+                drawLeft(font, line.text, textX, y, Color.WHITE);
             }
             y -= LINE_GAP * 0.95f;
 
             if (line.hasLink()) {
                 if (isLineVisible(y)) {
                     glyph.setText(font, line.url);
-                    drawLeft(font, line.url, rowTextX, y, new Color(0.10f, 0.24f, 0.55f, 1f));
+                    drawLeft(font, line.url, textX, y, Color.WHITE);
                     linkEntries.add(new LinkEntry(
-                            new Rectangle(rowTextX, y - glyph.height, glyph.width, glyph.height + 4f),
+                            new Rectangle(textX, y - glyph.height, glyph.width, glyph.height + 4f),
                             line.url));
                 }
                 y -= LINE_GAP * 0.8f;
@@ -319,40 +255,6 @@ public class CreditsScreen implements Screen {
 
     private boolean isLineVisible(float baselineY) {
         return baselineY >= crawlArea.y && baselineY <= crawlArea.y + crawlArea.height;
-    }
-
-    private boolean isRectVisible(float y, float h) {
-        return y + h >= crawlArea.y && y <= crawlArea.y + crawlArea.height;
-    }
-
-    private void drawProviderIcon(IconKind kind, float x, float y, float size) {
-        Texture tex = null;
-        switch (kind) {
-            case GITHUB:
-                tex = githubBadgeTexture;
-                break;
-            case LIBGDX:
-                tex = libgdxBadgeTexture;
-                break;
-            case GRADLE:
-                tex = gradleBadgeTexture;
-                break;
-            case DREAMLO:
-                tex = dreamloBadgeTexture;
-                break;
-            default:
-                break;
-        }
-
-        if (tex != null) {
-            batch.setColor(Color.WHITE);
-            batch.draw(tex, x, y, size, size);
-            return;
-        }
-
-        if (kind == IconKind.GITHUB) {
-            drawLeft(font, "GH", x, y + size - 2f, new Color(0.16f, 0.16f, 0.16f, 1f));
-        }
     }
 
     private void drawRect(Rectangle r, Color c) {
@@ -404,24 +306,6 @@ public class CreditsScreen implements Screen {
 
     @Override
     public void dispose() {
-        if (bgTexture != null) {
-            bgTexture.dispose();
-        }
-        if (logoTexture != null) {
-            logoTexture.dispose();
-        }
-        if (githubBadgeTexture != null) {
-            githubBadgeTexture.dispose();
-        }
-        if (libgdxBadgeTexture != null) {
-            libgdxBadgeTexture.dispose();
-        }
-        if (gradleBadgeTexture != null) {
-            gradleBadgeTexture.dispose();
-        }
-        if (dreamloBadgeTexture != null) {
-            dreamloBadgeTexture.dispose();
-        }
         if (font != null) {
             font.dispose();
         }
@@ -452,19 +336,6 @@ public class CreditsScreen implements Screen {
         BitmapFont out = gen.generateFont(p);
         gen.dispose();
         return out;
-    }
-
-    private Texture loadTextureSafe(String path) {
-        FileHandle f = resolveAsset(path);
-        if (!f.exists()) {
-            return null;
-        }
-        try {
-            return new Texture(f);
-        } catch (Exception e) {
-            Gdx.app.log("CreditsScreen", "Texture load failed: " + path + " (" + e.getMessage() + ")");
-            return null;
-        }
     }
 
     private static FileHandle resolveAsset(String name) {

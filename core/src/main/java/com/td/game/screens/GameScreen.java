@@ -2449,6 +2449,7 @@ public class GameScreen implements Screen {
         if (economyManager.canAfford(price)) {
             if (inventory.addOrb(element)) {
                 economyManager.spend(price);
+                game.audio.playBuySuccess();
             } else {
                 showErrorMessage("Inventory Full!");
             }
@@ -2722,6 +2723,7 @@ public class GameScreen implements Screen {
                         if (type != null && selectedTilePos != null) {
                             if (economyManager.canAfford(type.getPrice())) {
                                 economyManager.spend(type.getPrice());
+                                game.audio.playBuySuccess();
                                 Pillar pillar = new Pillar(type, selectedTilePos.cpy(), modelFactory);
                                 pillars.add(pillar);
                                 buildMenu.hide();
