@@ -5,6 +5,7 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.utils.Timer;
 import com.td.game.map.GameMap;
 
 public class AudioManager {
@@ -25,6 +26,7 @@ public class AudioManager {
     private Sound victorySound;
     private Sound loseSound;
     private Sound towerAttackBasicSound;
+    private Sound coreHitSound;
     private float musicVolume;
     private float soundVolume;
 
@@ -82,6 +84,11 @@ public class AudioManager {
         FileHandle towerAttackBasicFile = resolveAsset("audio/sfx/tower_attack_basic.ogg");
         if (towerAttackBasicFile.exists()) {
             towerAttackBasicSound = Gdx.audio.newSound(towerAttackBasicFile);
+        }
+
+        FileHandle coreHitFile = resolveAsset("audio/sfx/core_hit.ogg");
+        if (coreHitFile.exists()) {
+            coreHitSound = Gdx.audio.newSound(coreHitFile);
         }
     }
 
@@ -162,6 +169,22 @@ public class AudioManager {
     public void playTowerAttackBasic() {
         if (towerAttackBasicSound != null) {
             towerAttackBasicSound.play(soundVolume * 1.9f);
+        }
+    }
+
+    public void playCoreHit() {
+        if (coreHitSound != null) {
+            final long soundId = coreHitSound.play(soundVolume * 2.6f);
+            if (soundId != -1L) {
+                Timer.schedule(new Timer.Task() {
+                    @Override
+                    public void run() {
+                        if (coreHitSound != null) {
+                            coreHitSound.stop(soundId);
+                        }
+                    }
+                }, 1.5f);
+            }
         }
     }
 
@@ -259,6 +282,10 @@ public class AudioManager {
         if (towerAttackBasicSound != null) {
             towerAttackBasicSound.dispose();
             towerAttackBasicSound = null;
+        }
+        if (coreHitSound != null) {
+            coreHitSound.dispose();
+            coreHitSound = null;
         }
     }
 

@@ -2352,6 +2352,7 @@ public class GameScreen implements Screen {
                 if (!enemy.isAllied()) {
                     economyManager.loseLife();
                     coreFlashTimer = 0.4f;
+                    game.audio.playCoreHit();
                 }
             }
             if (!enemy.isAlive() && !enemy.hasReachedEnd()) {

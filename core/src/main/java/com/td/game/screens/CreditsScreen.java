@@ -129,10 +129,12 @@ public class CreditsScreen implements Screen {
         items.add(new CreditItem("SFX", "Used as wave start effect", "", IconKind.NONE));
         items.add(new CreditItem("SFX", "Gaming victory sound effect by EAGLAXLE", "https://pixabay.com/sound-effects/", IconKind.NONE));
         items.add(new CreditItem("SFX", "Used as victory effect", "", IconKind.NONE));
-        items.add(new CreditItem("SFX", "Marimba Lose sound effect by FoxBoy Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Marimba Lose sound effect by Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE));
         items.add(new CreditItem("SFX", "Used as lose effect", "", IconKind.NONE));
-        items.add(new CreditItem("SFX", "fire magic (6) sound effect by FoxBoy Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE));
-        items.add(new CreditItem("SFX", "Used as lose effect", "", IconKind.NONE));
+        items.add(new CreditItem("SFX", "fire magic (6) sound effect by Yodguard", "https://pixabay.com/sound-effects/", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Used as attack effect", "", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Crushing shells of eggs sound effect by AudioPapkin", "https://pixabay.com/sound-effects/", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Used as core hit effect", "", IconKind.NONE));
         items.add(new CreditItem("3D Models", "3D Models (source links pending)", "", IconKind.NONE));
         
         
