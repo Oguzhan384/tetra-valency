@@ -113,11 +113,11 @@ public class CreditsScreen implements Screen {
 
         leftY -= SECTION_BREAK;
         leftY = drawHeading("Systems Used", leftX, leftY);
-        float systemsStartY = leftY;
         leftY = drawSystemItem("Java", "https://www.java.com/", leftX, leftY);
         leftY = drawSystemItem("libGDX", "https://libgdx.com/", leftX, leftY);
         leftY = drawSystemItem("LWJGL", "https://www.lwjgl.org/", leftX, leftY);
         leftY = drawSystemItem("Gradle", "https://gradle.org/", leftX, leftY);
+        leftY = drawSystemItem("Dreamlo", "http://dreamlo.com/", leftX, leftY);
 
         float rightY = topY;
         rightY = drawHeading("Music", rightX, rightY);
@@ -138,8 +138,7 @@ public class CreditsScreen implements Screen {
         rightY = drawHeading("3D Models", rightX, rightY);
         rightY = drawLine("- Quaternius", rightX, rightY, "https://poly.pizza/u/Quaternius", CONTRIBUTOR_COLOR);
 
-        float rightSystemsY = systemsStartY;
-        rightSystemsY = drawSystemItem("Dreamlo", "http://dreamlo.com/", rightX, rightSystemsY);
+        float rightSystemsY = rightY - SECTION_BREAK;
         rightSystemsY = drawSystemItem("GitHub", "https://github.com/", rightX, rightSystemsY);
         rightSystemsY = drawSystemItem("Microsoft Paint", "https://apps.microsoft.com/detail/9pcfs5b6t72h", rightX, rightSystemsY);
         rightSystemsY = drawSystemItem("TTSMaker", "https://ttsmaker.com/", rightX, rightSystemsY);
