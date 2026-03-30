@@ -23,6 +23,7 @@ public class AudioManager {
     private Sound waveStartSound;
     private Sound waveCompleteSound;
     private Sound victorySound;
+    private Sound loseSound;
     private float musicVolume;
     private float soundVolume;
 
@@ -70,6 +71,11 @@ public class AudioManager {
         FileHandle victoryFile = resolveAsset("audio/sfx/victory.ogg");
         if (victoryFile.exists()) {
             victorySound = Gdx.audio.newSound(victoryFile);
+        }
+
+        FileHandle loseFile = resolveAsset("audio/sfx/lose.ogg");
+        if (loseFile.exists()) {
+            loseSound = Gdx.audio.newSound(loseFile);
         }
     }
 
@@ -138,6 +144,12 @@ public class AudioManager {
     public void playVictory() {
         if (victorySound != null) {
             victorySound.play(soundVolume * 2.8f);
+        }
+    }
+
+    public void playLose() {
+        if (loseSound != null) {
+            loseSound.play(soundVolume * 2.8f);
         }
     }
 
@@ -227,6 +239,10 @@ public class AudioManager {
         if (victorySound != null) {
             victorySound.dispose();
             victorySound = null;
+        }
+        if (loseSound != null) {
+            loseSound.dispose();
+            loseSound = null;
         }
     }
 

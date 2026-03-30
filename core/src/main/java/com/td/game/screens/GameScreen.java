@@ -167,6 +167,7 @@ public class GameScreen implements Screen {
     private boolean gameOver;
     private boolean gameWon;
     private boolean victorySfxPlayed;
+    private boolean loseSfxPlayed;
     private boolean augmentChoiceActive;
     private int augmentOptionA;
     private int augmentOptionB;
@@ -411,6 +412,7 @@ public class GameScreen implements Screen {
         gameOver = false;
         gameWon = false;
         victorySfxPlayed = false;
+        loseSfxPlayed = false;
         augmentChoiceActive = false;
         augmentOptionA = -1;
         augmentOptionB = -1;
@@ -479,6 +481,16 @@ public class GameScreen implements Screen {
         victorySfxPlayed = true;
         if (game != null && game.audio != null) {
             game.audio.playVictory();
+        }
+    }
+
+    private void playLoseSfxOnce() {
+        if (loseSfxPlayed) {
+            return;
+        }
+        loseSfxPlayed = true;
+        if (game != null && game.audio != null) {
+            game.audio.playLose();
         }
     }
 
@@ -2394,7 +2406,10 @@ public class GameScreen implements Screen {
 
         // Check game over conditions
         if (economyManager.isGameOver()) {
-            gameOver = true;
+            if (!gameOver) {
+                gameOver = true;
+                playLoseSfxOnce();
+            }
             com.td.game.systems.SaveManager.deleteSave(mapType);
             return;
         }

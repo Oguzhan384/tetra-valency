@@ -45,7 +45,8 @@ public class CreditsScreen implements Screen {
     private float creditsContentHeight;
     private static final float SCROLL_STEP = 34f;
     private static final float CREDITS_TOP_PADDING = 12f;
-    private static final float CREDITS_BOTTOM_PADDING = 72f;
+    private static final float CREDITS_BOTTOM_PADDING = 180f;
+    private static final float EXTRA_SCROLL_ALLOWANCE = 120f;
 
     private enum IconKind {
         NONE, GITHUB, LIBGDX, GRADLE, DREAMLO
@@ -128,6 +129,8 @@ public class CreditsScreen implements Screen {
         items.add(new CreditItem("SFX", "Used as wave start effect", "", IconKind.NONE));
         items.add(new CreditItem("SFX", "Gaming victory sound effect by EAGLAXLE", "https://pixabay.com/sound-effects/", IconKind.NONE));
         items.add(new CreditItem("SFX", "Used as victory effect", "", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Marimba Lose sound effect by FoxBoy Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Used as lose effect", "", IconKind.NONE));
         items.add(new CreditItem("3D Models", "3D Models (source links pending)", "", IconKind.NONE));
         
         items.add(new CreditItem("Tools/Libraries", "GitHub", "https://github.com/", IconKind.GITHUB));
@@ -329,7 +332,7 @@ public class CreditsScreen implements Screen {
     }
 
     private float getMaxCreditsScroll() {
-        return Math.max(0f, creditsContentHeight - creditsViewport.height);
+        return Math.max(0f, creditsContentHeight - creditsViewport.height + EXTRA_SCROLL_ALLOWANCE);
     }
 
     private boolean isVisibleY(float baselineY) {
