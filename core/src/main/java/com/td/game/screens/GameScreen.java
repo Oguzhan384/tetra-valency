@@ -21,6 +21,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
@@ -81,6 +82,7 @@ public class GameScreen implements Screen {
 
     private Texture mapAreaBackgroundTexture;
     private Texture hudLifeIconTexture;
+    private Texture lifeRecallTexture;
     private Texture hudGoldIconTexture;
     private Texture hudInfoIconTexture;
     private Texture poisonBurstTexture;
@@ -251,6 +253,7 @@ public class GameScreen implements Screen {
         String mapBgPath = mapType == GameMap.MapType.DESERT_OASIS ? "ui/map_2_bg.png" : "ui/map_bg.png";
         mapAreaBackgroundTexture = new Texture(resolveAsset(mapBgPath));
         hudLifeIconTexture = new Texture(resolveAsset("ui/hud_life_icon.png"));
+        lifeRecallTexture = new Texture(resolveAsset("attack/life.jpg"));
         hudGoldIconTexture = new Texture(resolveAsset("ui/hud_currency_gold.png"));
         hudInfoIconTexture = new Texture(resolveAsset("ui/hud_info_icon.png"));
         poisonBurstTexture = new Texture(resolveAsset("attack/poison.png"));
@@ -2979,6 +2982,8 @@ public class GameScreen implements Screen {
         }
         if (hudLifeIconTexture != null)
             hudLifeIconTexture.dispose();
+        if (lifeRecallTexture != null)
+            lifeRecallTexture.dispose();
         if (hudGoldIconTexture != null)
             hudGoldIconTexture.dispose();
     }
@@ -3184,6 +3189,11 @@ public class GameScreen implements Screen {
         if (proj.isPoisonCharmActive()) {
             target.applyRegenReduction(5.1f, 0.40f, 1);
         }
+
+        // LIFE charm: if this hit kills, killer pillar's next attack deals 250% damage.
+        if (!target.isAlive() && proj.isLifeCharmActive() && proj.getSourcePillar() != null) {
+            proj.getSourcePillar().activateLifeFrenzy();
+        }
     }
 
     private void spawnEffect(Vector3 pos, Element element, float lifetime, float scale) {
@@ -3220,8 +3230,21 @@ public class GameScreen implements Screen {
             ally.getPosition().set(pathWaypoints.get(pathWaypoints.size - 1));
         }
 
+        applyLifeRecallTexture(ally);
+
         waveManager.getActiveEnemies().add(ally);
         spawnEffect(ally.getPosition(), Element.LIFE, 1.0f, 1.5f);
+    }
+
+    private void applyLifeRecallTexture(com.td.game.entities.Enemy ally) {
+        if (lifeRecallTexture == null || ally == null || ally.getModelInstance() == null) {
+            return;
+        }
+
+        for (com.badlogic.gdx.graphics.g3d.Material mat : ally.getModelInstance().materials) {
+            mat.set(TextureAttribute.createDiffuse(lifeRecallTexture));
+            mat.set(ColorAttribute.createEmissive(0.06f, 0.30f, 0.10f, 1f));
+        }
     }
 
     private void updateStaffAuraBuffs() {
@@ -3244,22 +3267,25 @@ public class GameScreen implements Screen {
                 float spdBuff = 1f;
                 float rngBuff = 1f;
                 boolean poisonCharm = false;
+                boolean lifeCharm = false;
 
                 if (equipped != null) {
                     switch (equipped) {
                         case LIGHT: dmgBuff = 1f + (0.04f * enemiesInAura); break; // +4% damage per enemy in aura
                         case FIRE: dmgBuff = 1.25f; break; // +25% Damage
                         case WATER: rngBuff = 1.25f; break; // +25% Range
-                        case LIFE: dmgBuff = 1.5f; break; // Massive Damage Bonus
+                        case LIFE: lifeCharm = true; break; // Kill frenzy: next attack 250% after a kill
                         case POISON: poisonCharm = true; break; // Heal reduction on hit
                         default: break;
                     }
                 }
                 p.setExternalMultipliers(dmgBuff, rngBuff, spdBuff);
                 p.setPoisonCharmActive(poisonCharm);
+                p.setLifeCharmActive(lifeCharm);
             } else {
                 p.setExternalMultipliers(1f, 1f, 1f);
                 p.setPoisonCharmActive(false);
+                p.setLifeCharmActive(false);
             }
         }
     }
