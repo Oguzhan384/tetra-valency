@@ -90,10 +90,10 @@ public class CreditsScreen implements Screen {
         float w = Gdx.graphics.getWidth();
         float h = Gdx.graphics.getHeight();
 
-        drawCentered(titleFont, "Credits", 0f, h - 30f, w, HEADING_COLOR);
+        drawCentered(titleFont, "CREDITS", 0f, h - 30f, w, HEADING_COLOR);
 
         float leftX = 40f;
-        float rightX = w * 0.53f;
+        float rightX = w * 0.48f;
         float topY = h - 85f;
 
         float leftY = topY;
@@ -114,8 +114,6 @@ public class CreditsScreen implements Screen {
         leftY = drawLine("- Paytone One", leftX, leftY, "https://fonts.google.com/specimen/Paytone+One", BODY_COLOR);
 
         leftY -= (SECTION_BREAK * 2f) + SYSTEMS_BLOCK_DROP;
-        drawLeft(font, "------------------------------", leftX, leftY, BODY_COLOR);
-        leftY -= (LINE_GAP * 0.55f);
         leftY = drawHeading("Systems Used", leftX, leftY);
         float systemsStartY = leftY;
         float leftSystemsY = systemsStartY;
@@ -127,7 +125,7 @@ public class CreditsScreen implements Screen {
         leftSystemsY = drawSystemItem("Dreamlo", "http://dreamlo.com/", leftX, leftSystemsY);
 
         float rightY = topY;
-        rightY = drawHeading("Music", rightX, rightY);
+        rightY = drawHeading("MusIc", rightX, rightY);
         rightY = drawLine("- Source Website", rightX, rightY, "https://pixabay.com/music/", BODY_COLOR);
         rightY = drawMusicItem("Main Menu Music", "Roman_Sol", rightX, rightY);
         rightY = drawMusicItem("Elemental Plateau Music", "DanielHren", rightX, rightY);
@@ -145,16 +143,15 @@ public class CreditsScreen implements Screen {
         rightY = drawHeading("3D Models", rightX, rightY);
         rightY = drawLine("- Quaternius", rightX, rightY, "https://poly.pizza/u/Quaternius", CONTRIBUTOR_COLOR);
 
-        drawLeft(font, "------------------------------", rightX, systemsStartY + (LINE_GAP * 0.55f), BODY_COLOR);
         float rightSystemsY = systemsStartY;
-        rightSystemsY = drawSystemItem("Microsoft Paint", "https://apps.microsoft.com/detail/9pcfs5b6t72h", rightX, rightSystemsY);
-        rightSystemsY = drawSystemItem("TTSMaker", "https://ttsmaker.com/", rightX, rightSystemsY);
-        rightSystemsY = drawSystemItem("Pixilart", "https://www.pixilart.com/", rightX, rightSystemsY);
-        rightSystemsY = drawSystemItem("Canva", "https://www.canva.com/", rightX, rightSystemsY);
+        rightSystemsY = drawSystemItem("TTSMaker", "https://ttsmaker.com/", w * 0.2f, rightSystemsY);
+        rightSystemsY = drawSystemItem("Pixilart", "https://www.pixilart.com/", w * 0.2f, rightSystemsY);
+        rightSystemsY = drawSystemItem("Canva", "https://www.canva.com/", w * 0.2f, rightSystemsY);
+        rightSystemsY = drawSystemItem("Microsoft Paint", "https://apps.microsoft.com/detail/9pcfs5b6t72h", w * 0.2f, rightSystemsY);
     }
 
     private float drawHeading(String text, float x, float y) {
-        drawLeft(font, text, x, y, HEADING_COLOR);
+        drawLeft(font, text.toUpperCase(), x, y, HEADING_COLOR);
         return y - LINE_GAP;
     }
 
