@@ -2618,6 +2618,7 @@ public class GameScreen implements Screen {
                 }
                 if (isInRect(screenX, flippedY, speedIconX, speedIconY, speedIconSize, speedIconSize)) {
                     speedIndex = (speedIndex + 1) % SPEED_MULTIPLIERS.length;
+                    game.audio.playSpeedToggle();
                     showMessage(String.format("Speed: %dX", (int) SPEED_MULTIPLIERS[speedIndex]));
                     return true;
                 }

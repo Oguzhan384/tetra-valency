@@ -118,7 +118,8 @@ public class CreditsScreen implements Screen {
         items.add(new CreditItem("SFX", "Used as UI click error effect", "", IconKind.NONE));
         items.add(new CreditItem("SFX", "Casual Click Pop UI 3 sound effect by floraphonic", "https://pixabay.com/sound-effects/", IconKind.NONE));
         items.add(new CreditItem("SFX", "Used as pause toggle effect", "", IconKind.NONE));
-        
+        items.add(new CreditItem("SFX", "High Speed sound effect by Universfield", "https://pixabay.com/sound-effects/", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Used as speed toggle effect", "", IconKind.NONE));
         items.add(new CreditItem("3D Models", "3D Models (source links pending)", "", IconKind.NONE));
 
         items.add(new CreditItem("Tools/Libraries", "GitHub", "https://github.com/", IconKind.GITHUB));
@@ -520,7 +521,7 @@ public class CreditsScreen implements Screen {
                 return false;
             }
 
-            creditsScroll = MathUtils.clamp(creditsScroll + amountY * SCROLL_STEP, 0f, maxScroll);
+            creditsScroll = MathUtils.clamp(creditsScroll - amountY * SCROLL_STEP, 0f, maxScroll);
             return true;
         }
     }

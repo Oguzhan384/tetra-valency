@@ -5,7 +5,6 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.utils.Timer;
 import com.td.game.map.GameMap;
 
 public class AudioManager {
@@ -20,9 +19,9 @@ public class AudioManager {
     private Sound clickSound;
     private Sound errorSound;
     private Sound pauseToggleSound;
+    private Sound speedToggleSound;
     private float musicVolume;
     private float soundVolume;
-    private static final float CLICK_DELAY_SEC = 0.2f;
 
     public void init() {
         prefs = Gdx.app.getPreferences(PREFS_NAME);
@@ -48,6 +47,11 @@ public class AudioManager {
         FileHandle pauseToggleFile = resolveAsset("audio/sfx/pause_toggle.ogg");
         if (pauseToggleFile.exists()) {
             pauseToggleSound = Gdx.audio.newSound(pauseToggleFile);
+        }
+
+        FileHandle speedToggleFile = resolveAsset("audio/sfx/speed_toggle.ogg");
+        if (speedToggleFile.exists()) {
+            speedToggleSound = Gdx.audio.newSound(speedToggleFile);
         }
     }
 
@@ -79,14 +83,7 @@ public class AudioManager {
 
     public void playClick() {
         if (clickSound != null) {
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    if (clickSound != null) {
-                        clickSound.play(soundVolume * 3.0f);
-                    }
-                }
-            }, CLICK_DELAY_SEC);
+            clickSound.play(soundVolume * 3.0f);
         }
     }
 
@@ -99,6 +96,12 @@ public class AudioManager {
     public void playPauseToggle() {
         if (pauseToggleSound != null) {
             pauseToggleSound.play(soundVolume * 2.4f);
+        }
+    }
+
+    public void playSpeedToggle() {
+        if (speedToggleSound != null) {
+            speedToggleSound.play(soundVolume * 2.4f);
         }
     }
 
@@ -172,6 +175,10 @@ public class AudioManager {
         if (pauseToggleSound != null) {
             pauseToggleSound.dispose();
             pauseToggleSound = null;
+        }
+        if (speedToggleSound != null) {
+            speedToggleSound.dispose();
+            speedToggleSound = null;
         }
     }
 
