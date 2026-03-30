@@ -19,7 +19,6 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.td.game.map.TileType;
 import com.td.game.pillars.PillarType;
-import com.td.game.elements.Element;
 
 public class ModelFactory implements Disposable {
     private final ModelBuilder modelBuilder;
@@ -163,6 +162,17 @@ public class ModelFactory implements Disposable {
             case LIGHT:
                 // Light: Beam/Long cylinder
                 return modelBuilder.createCylinder(0.2f, 10.0f, 0.2f, 8, new Material(ColorAttribute.createDiffuse(color)), attributes);
+            case STEAM:
+                // Steam: Transparent grey sphere
+                Color steamColor = new Color(0.7f, 0.7f, 0.7f, 0.6f);
+                return modelBuilder.createSphere(0.5f, 0.5f, 0.5f, 16, 16, 
+                    new Material(ColorAttribute.createDiffuse(steamColor), new BlendingAttribute(0.6f)), attributes);
+            case POISON:
+                // Poison: Purple projectile
+                return modelBuilder.createSphere(0.5f, 0.5f, 0.5f, 16, 16, new Material(ColorAttribute.createDiffuse(color)), attributes);
+            case LIFE:
+                // Life: Green orb
+                return createOrbModel(color);
             default:
                 return createOrbModel(color);
         }

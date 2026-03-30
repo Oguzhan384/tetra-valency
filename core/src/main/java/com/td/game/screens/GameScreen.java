@@ -791,7 +791,7 @@ public class GameScreen implements Screen {
 
         if (staffUI.hasOrb() && staffUI.contains(Gdx.input.getX(), Gdx.input.getY())) {
             hoveredTooltipElement = staffUI.getEquippedElement();
-            tooltipContext = "staff";
+            tooltipContext = "charm";
         }
     }
 
@@ -863,13 +863,13 @@ public class GameScreen implements Screen {
         textY -= lineH * 1.6f;
         uiFont.setColor(Color.GOLD);
         uiFont.getData().setScale(uiScale * 0.75f);
-        String contextLabel = "staff".equals(tooltipContext) ? "Charm Effect:" : "Pillar Effect:";
+        String contextLabel = "charm".equals(tooltipContext) ? "Charm Effect:" : "Pillar Effect:";
         uiFont.draw(uiBatch, contextLabel, textX, textY);
 
         textY -= lineH * 1.3f;
         uiFont.setColor(Color.WHITE);
         uiFont.getData().setScale(uiScale * 0.65f);
-        String description = "staff".equals(tooltipContext) ? staffDesc : pillarDesc;
+        String description = "charm".equals(tooltipContext) ? staffDesc : pillarDesc;
 
         float maxTextW = panelW - 32f * uiScale;
         glyphLayout.setText(uiFont, description, Color.WHITE, maxTextW, com.badlogic.gdx.utils.Align.left, true);
