@@ -111,7 +111,7 @@ public class CreditsScreen implements Screen {
         leftY = drawHeading("Fonts", leftX, leftY);
         leftY = drawLine("- Paytone One", leftX, leftY, "https://fonts.google.com/specimen/Paytone+One", BODY_COLOR);
 
-        leftY -= SECTION_BREAK;
+        leftY -= (SECTION_BREAK * 2f);
         leftY = drawHeading("Systems Used", leftX, leftY);
         leftY = drawSystemItem("Java", "https://www.java.com/", leftX, leftY);
         leftY = drawSystemItem("libGDX", "https://libgdx.com/", leftX, leftY);
