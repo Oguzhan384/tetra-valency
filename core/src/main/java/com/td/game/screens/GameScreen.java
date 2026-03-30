@@ -2070,6 +2070,7 @@ public class GameScreen implements Screen {
                 break;
             case 3:
                 economyManager.earn(80);
+                game.audio.playGoldGain();
                 showMessage("Augment: Golden Pact");
                 break;
             case 4:
@@ -2078,10 +2079,12 @@ public class GameScreen implements Screen {
                 break;
             case 5:
                 economyManager.earn(120);
+                game.audio.playGoldGain();
                 showMessage("Augment: Emergency Funding");
                 break;
             case 6:
                 economyManager.earn(100);
+                game.audio.playGoldGain();
                 showMessage("Augment: Stipend");
                 break;
             case 7:
@@ -2364,6 +2367,7 @@ public class GameScreen implements Screen {
                         goldEarned = (int)(goldEarned * 2f);
                     }
                     economyManager.earn(goldEarned);
+                    game.audio.playGoldGain();
                     
                     // Check for LIFE pillar revive
                     if (LifeAttack.canRevive(pillars, enemy)) {
@@ -2742,6 +2746,7 @@ public class GameScreen implements Screen {
                             inventory.addOrb(removed);
                         }
                         economyManager.earn(selectedPillar.getType().getPrice() / 2);
+                        game.audio.playGoldGain();
                         pillars.removeValue(selectedPillar, true);
                         selectedPillar = null;
                         awaitingPillarOrbSelection = false;

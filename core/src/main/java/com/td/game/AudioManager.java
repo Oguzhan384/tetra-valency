@@ -30,11 +30,15 @@ public class AudioManager {
     private Sound towerAttackBasicSound;
     private Sound coreHitSound;
     private Sound enemyDeathSound;
+    private Sound goldGainSound;
     private float musicVolume;
     private float soundVolume;
     private long enemyDeathLastPlayedMs;
     private long enemyDeathBurstWindowStartMs;
     private int enemyDeathBurstCount;
+    private long goldGainLastPlayedMs;
+    private long goldGainBurstWindowStartMs;
+    private int goldGainBurstCount;
 
     public void init() {
         prefs = Gdx.app.getPreferences(PREFS_NAME);
@@ -100,6 +104,11 @@ public class AudioManager {
         FileHandle enemyDeathFile = resolveAsset("audio/sfx/enemy_death.ogg");
         if (enemyDeathFile.exists()) {
             enemyDeathSound = Gdx.audio.newSound(enemyDeathFile);
+        }
+
+        FileHandle goldGainFile = resolveAsset("audio/sfx/gold_gain.ogg");
+        if (goldGainFile.exists()) {
+            goldGainSound = Gdx.audio.newSound(goldGainFile);
         }
     }
 
@@ -231,6 +240,38 @@ public class AudioManager {
         enemyDeathSound.play(soundVolume * 1.9f);
     }
 
+    public void playGoldGain() {
+        if (goldGainSound == null) {
+            return;
+        }
+
+        long nowMs = TimeUtils.millis();
+        if (nowMs - goldGainLastPlayedMs < 80L) {
+            return;
+        }
+
+        if (nowMs - goldGainBurstWindowStartMs > 420L) {
+            goldGainBurstWindowStartMs = nowMs;
+            goldGainBurstCount = 0;
+        }
+        goldGainBurstCount++;
+
+        float playChance = 1f;
+        if (goldGainBurstCount > 4) {
+            playChance = 0.62f;
+        }
+        if (goldGainBurstCount > 8) {
+            playChance = 0.32f;
+        }
+
+        if (!MathUtils.randomBoolean(playChance)) {
+            return;
+        }
+
+        goldGainLastPlayedMs = nowMs;
+        goldGainSound.play(soundVolume * 1.8f);
+    }
+
     public void playMenuMusic() {
         if (menuMusic != null && menuMusic.isPlaying()) {
             return;
@@ -333,6 +374,10 @@ public class AudioManager {
         if (enemyDeathSound != null) {
             enemyDeathSound.dispose();
             enemyDeathSound = null;
+        }
+        if (goldGainSound != null) {
+            goldGainSound.dispose();
+            goldGainSound = null;
         }
     }
 

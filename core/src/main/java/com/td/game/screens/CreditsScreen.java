@@ -248,28 +248,29 @@ public class CreditsScreen implements Screen {
     }
 
     private void renderCrawlContent() {
-        float y = crawlArea.y - crawlContentHeight + crawlOffset;
+        float y = crawlArea.y + crawlArea.height + crawlContentHeight - crawlOffset;
         float centerX = rootPanel.x + rootPanel.width * 0.5f;
 
         if (logoTexture != null) {
             float logoX = centerX - LOGO_SIZE * 0.5f;
-            if (isRectVisible(y, LOGO_SIZE)) {
-                batch.draw(logoTexture, logoX, y, LOGO_SIZE, LOGO_SIZE);
+            float logoBottom = y - LOGO_SIZE;
+            if (isRectVisible(logoBottom, LOGO_SIZE)) {
+                batch.draw(logoTexture, logoX, logoBottom, LOGO_SIZE, LOGO_SIZE);
             }
         }
-        y += LOGO_SIZE + SECTION_GAP;
+        y -= LOGO_SIZE + SECTION_GAP;
 
         y = drawCenteredLine(titleFont, "Credits", y, new Color(0.23f, 0.15f, 0.08f, 1f), 1.2f);
-        y += SECTION_GAP * 0.7f;
+        y -= SECTION_GAP * 0.7f;
 
         y = drawCenteredLine(font, "Team Members", y, new Color(0.40f, 0.28f, 0.14f, 1f), 1f);
         for (String member : teamMembers) {
             y = drawCenteredLine(font, member, y, new Color(0.14f, 0.1f, 0.06f, 1f), 1f);
         }
 
-        y += SECTION_GAP;
+        y -= SECTION_GAP;
         y = drawCenteredLine(font, "Used Assets", y, new Color(0.40f, 0.28f, 0.14f, 1f), 1f);
-        y += SECTION_GAP * 0.6f;
+        y -= SECTION_GAP * 0.6f;
 
         float textX = crawlArea.x + 10f;
 
@@ -278,7 +279,7 @@ public class CreditsScreen implements Screen {
                 if (isLineVisible(y)) {
                     drawLeft(font, line.text, textX, y, new Color(0.35f, 0.24f, 0.12f, 1f));
                 }
-                y += LINE_GAP;
+                y -= LINE_GAP;
                 continue;
             }
 
@@ -294,7 +295,7 @@ public class CreditsScreen implements Screen {
             if (isLineVisible(y)) {
                 drawLeft(font, line.text, rowTextX, y, new Color(0.14f, 0.1f, 0.06f, 1f));
             }
-            y += LINE_GAP * 0.95f;
+            y -= LINE_GAP * 0.95f;
 
             if (line.hasLink()) {
                 if (isLineVisible(y)) {
@@ -304,7 +305,7 @@ public class CreditsScreen implements Screen {
                             new Rectangle(rowTextX, y - glyph.height, glyph.width, glyph.height + 4f),
                             line.url));
                 }
-                y += LINE_GAP * 0.8f;
+                y -= LINE_GAP * 0.8f;
             }
         }
     }
@@ -313,7 +314,7 @@ public class CreditsScreen implements Screen {
         if (isLineVisible(y)) {
             drawCentered(drawFont, text, crawlArea.x, y, crawlArea.width, color);
         }
-        return y + (LINE_GAP * gapMul);
+        return y - (LINE_GAP * gapMul);
     }
 
     private boolean isLineVisible(float baselineY) {
