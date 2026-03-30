@@ -173,6 +173,14 @@ public class Enemy implements Disposable {
                 for (com.badlogic.gdx.graphics.g3d.Material mat : modelInstance.materials) {
                     mat.set(com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute.createEmissive(Color.WHITE));
                 }
+            } else if (poisonTimer > 0) {
+                float pulse = 0.55f + 0.45f * (float) Math.sin((walkTimer + poisonTimer) * 7f);
+                float eR = 0.20f + 0.22f * pulse;
+                float eG = 0.10f + 0.30f * pulse;
+                float eB = 0.22f + 0.30f * pulse;
+                for (com.badlogic.gdx.graphics.g3d.Material mat : modelInstance.materials) {
+                    mat.set(com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute.createEmissive(eR, eG, eB, 1f));
+                }
             } else {
                 for (com.badlogic.gdx.graphics.g3d.Material mat : modelInstance.materials) {
                     mat.remove(com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute.Emissive);
@@ -220,6 +228,15 @@ public class Enemy implements Disposable {
         shapeRenderer.setColor(healthColor);
         float healthWidth = barWidth * (health / maxHealth);
         shapeRenderer.rect(barX, barY, healthWidth, barHeight);
+
+        if (poisonTimer > 0) {
+            float pulse = 0.6f + 0.4f * (float) Math.sin((walkTimer + poisonTimer) * 10f);
+            shapeRenderer.setColor(0.72f, 0.20f + 0.25f * pulse, 0.88f, 1f);
+            shapeRenderer.rect(barX - 1f, barY - 1f, barWidth + 2f, 1f);
+            shapeRenderer.rect(barX - 1f, barY + barHeight, barWidth + 2f, 1f);
+            shapeRenderer.rect(barX - 1f, barY, 1f, barHeight);
+            shapeRenderer.rect(barX + barWidth, barY, 1f, barHeight);
+        }
     }
 
     public void setElement(Element element) {
@@ -376,7 +393,23 @@ public class Enemy implements Disposable {
                     com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute ca = (com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute) 
                         mat.get(com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute.Diffuse);
                     if (ca != null) {
-                        ca.color.set(element.getR(), element.getG(), element.getB(), 1f);
+                        if (poisonTimer > 0) {
+                            float pulse = 0.5f + 0.5f * (float) Math.sin((walkTimer + poisonTimer) * 9f);
+                            float poisonR = 0.56f + 0.12f * pulse;
+                            float poisonG = 0.24f + 0.18f * (1f - pulse);
+                            float poisonB = 0.58f + 0.20f * pulse;
+                            float mix = 0.52f;
+                            float baseR = element.getR();
+                            float baseG = element.getG();
+                            float baseB = element.getB();
+                            ca.color.set(
+                                    baseR * (1f - mix) + poisonR * mix,
+                                    baseG * (1f - mix) + poisonG * mix,
+                                    baseB * (1f - mix) + poisonB * mix,
+                                    1f);
+                        } else {
+                            ca.color.set(element.getR(), element.getG(), element.getB(), 1f);
+                        }
                     }
                 }
             }
