@@ -875,13 +875,21 @@ public class GameScreen implements Screen {
                 break;
             case "killall":
                 killAllEnemies();
+                waveManager.removeDeadEnemies();
+                if (openEndgameForKillAllIfNeeded(elapsedTime)) {
+                    return;
+                }
                 break;
             case "win":
-                if (lastWave >= 0 && lastWave <= (waveManager != null ? waveManager.getMaxWaves() : maxWaves)) {
+                if (lastWave > (waveManager != null ? waveManager.getMaxWaves() : maxWaves)) {
+                    game.setScreen(new EndgameScreen(game, EndgameScreen.EndState.ENDLESS_FINISH, mapType, lastWave,
+                            elapsedTime));
+                    dispose();
+                } else if (lastWave >= 0) {
                     game.setScreen(new EndgameScreen(game, EndgameScreen.EndState.WIN, mapType, lastWave, elapsedTime));
                     dispose();
                 } else {
-                    showMessage("WIN works only on the first 50 waves.");
+                    showMessage("WIN is not available right now.");
                 }
                 break;
             case "lose":
@@ -917,13 +925,23 @@ public class GameScreen implements Screen {
             return;
         }
 
+        int waveCap = waveManager.getMaxWaves();
+        boolean firstFiftyCleared = hasClearedFirstFiftyWaves();
+        int effectiveWave = targetWave;
+
+        if (!firstFiftyCleared && targetWave > waveCap) {
+            effectiveWave = waveCap;
+        } else if (firstFiftyCleared && targetWave < waveCap) {
+            effectiveWave = waveCap;
+        }
+
         killAllEnemies();
         waveManager.removeDeadEnemies();
-        waveManager.jumpToWave(targetWave);
+        waveManager.jumpToWave(effectiveWave);
         waveManager.startNextWave();
-        consoleWaveInput = String.valueOf(targetWave);
+        consoleWaveInput = String.valueOf(effectiveWave);
         activeConsoleInput = CONSOLE_INPUT_NONE;
-        showMessage("Jumped to wave " + targetWave);
+        showMessage("Jumped to wave " + effectiveWave);
     }
 
     private void setLivesFromConsole() {
@@ -2703,6 +2721,35 @@ public class GameScreen implements Screen {
         hoveredPillar = hoverState.hoveredPillar;
         hoveringAlchemist = hoverState.hoveringAlchemist;
         updatePillarMultipliers();
+    }
+
+    private boolean hasClearedFirstFiftyWaves() {
+        if (waveManager == null) {
+            return false;
+        }
+        int waveCap = waveManager.getMaxWaves();
+        return waveManager.getCurrentWave() > waveCap
+                || (waveManager.getCurrentWave() >= waveCap && waveManager.areAllWavesComplete());
+    }
+
+    private boolean openEndgameForKillAllIfNeeded(float elapsedTime) {
+        if (waveManager == null || waveManager.getEnemiesRemaining() > 0) {
+            return false;
+        }
+
+        int currentWave = waveManager.getCurrentWave();
+        int waveCap = waveManager.getMaxWaves();
+        if (currentWave < waveCap) {
+            return false;
+        }
+
+        com.td.game.systems.SaveManager.deleteSave(mapType);
+        EndgameScreen.EndState endState = currentWave > waveCap
+                ? EndgameScreen.EndState.ENDLESS_FINISH
+                : EndgameScreen.EndState.WIN;
+        game.setScreen(new EndgameScreen(game, endState, mapType, currentWave, elapsedTime));
+        dispose();
+        return true;
     }
 
     private boolean hoveringAlchemist = false;

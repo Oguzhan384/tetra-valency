@@ -148,9 +148,7 @@ public class WaveManager implements Disposable {
         // Check wave completion
         if (enemiesSpawned >= enemiesInWave && getAliveEnemyCount() == 0) {
             waveInProgress = false;
-            if (currentWave >= MAX_WAVES) {
-                allWavesComplete = true;
-            }
+            allWavesComplete = currentWave == MAX_WAVES;
         }
     }
 
