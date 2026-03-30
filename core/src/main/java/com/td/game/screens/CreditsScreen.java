@@ -98,10 +98,11 @@ public class CreditsScreen implements Screen {
         float leftY = topY;
         leftY = drawHeading("Group Members", leftX, leftY);
         leftY = drawLine("- Umit Yusuf GONEN", leftX, leftY, null, CONTRIBUTOR_COLOR);
-        leftY = drawLine("- Ahmet Efe CANPOLAT", leftX, leftY, null, CONTRIBUTOR_COLOR);
-        leftY = drawLine("- Burhan TURK", leftX, leftY, null, CONTRIBUTOR_COLOR);
-        leftY = drawLine("- Onur Yusuf YILMAZ", leftX, leftY, null, CONTRIBUTOR_COLOR);
         leftY = drawLine("- Oguzhan YILMAZ", leftX, leftY, null, CONTRIBUTOR_COLOR);
+        leftY = drawLine("- Burhan TURK", leftX, leftY, null, CONTRIBUTOR_COLOR);
+        leftY = drawLine("- Ahmet Efe CANPOLAT", leftX, leftY, null, CONTRIBUTOR_COLOR);       
+        leftY = drawLine("- Onur Yusuf YILMAZ", leftX, leftY, null, CONTRIBUTOR_COLOR);
+        
 
         leftY -= SECTION_BREAK;
         leftY = drawHeading("Icons", leftX, leftY);
@@ -113,11 +114,14 @@ public class CreditsScreen implements Screen {
 
         leftY -= (SECTION_BREAK * 2f);
         leftY = drawHeading("Systems Used", leftX, leftY);
-        leftY = drawSystemItem("Java", "https://www.java.com/", leftX, leftY);
-        leftY = drawSystemItem("libGDX", "https://libgdx.com/", leftX, leftY);
-        leftY = drawSystemItem("LWJGL", "https://www.lwjgl.org/", leftX, leftY);
-        leftY = drawSystemItem("Gradle", "https://gradle.org/", leftX, leftY);
-        leftY = drawSystemItem("Dreamlo", "http://dreamlo.com/", leftX, leftY);
+        float systemsStartY = leftY - (SECTION_BREAK * 0.8f);
+        float leftSystemsY = systemsStartY;
+        leftSystemsY = drawSystemItem("Java", "https://www.java.com/", leftX, leftSystemsY);
+        leftSystemsY = drawSystemItem("GitHub", "https://github.com/", leftX, leftSystemsY);
+        leftSystemsY = drawSystemItem("libGDX", "https://libgdx.com/", leftX, leftSystemsY);
+        leftSystemsY = drawSystemItem("LWJGL", "https://www.lwjgl.org/", leftX, leftSystemsY);
+        leftSystemsY = drawSystemItem("Gradle", "https://gradle.org/", leftX, leftSystemsY);
+        leftSystemsY = drawSystemItem("Dreamlo", "http://dreamlo.com/", leftX, leftSystemsY);
 
         float rightY = topY;
         rightY = drawHeading("Music", rightX, rightY);
@@ -138,8 +142,7 @@ public class CreditsScreen implements Screen {
         rightY = drawHeading("3D Models", rightX, rightY);
         rightY = drawLine("- Quaternius", rightX, rightY, "https://poly.pizza/u/Quaternius", CONTRIBUTOR_COLOR);
 
-        float rightSystemsY = rightY - SECTION_BREAK;
-        rightSystemsY = drawSystemItem("GitHub", "https://github.com/", rightX, rightSystemsY);
+        float rightSystemsY = systemsStartY;
         rightSystemsY = drawSystemItem("Microsoft Paint", "https://apps.microsoft.com/detail/9pcfs5b6t72h", rightX, rightSystemsY);
         rightSystemsY = drawSystemItem("TTSMaker", "https://ttsmaker.com/", rightX, rightSystemsY);
         rightSystemsY = drawSystemItem("Pixilart", "https://www.pixilart.com/", rightX, rightSystemsY);
