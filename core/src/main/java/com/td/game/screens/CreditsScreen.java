@@ -28,7 +28,10 @@ public class CreditsScreen implements Screen {
     private Rectangle backBtn;
     private Array<LinkEntry> linkEntries;
 
-    private static final float LINE_GAP = 22f;
+    private static final float LINE_GAP = 28f;
+    private static final Color HEADING_COLOR = new Color(0.86f, 0.15f, 0.15f, 1f);
+    private static final Color BODY_COLOR = Color.WHITE;
+    private static final Color CONTRIBUTOR_COLOR = new Color(0.45f, 0.82f, 1f, 1f);
 
     private static class LinkEntry {
         Rectangle rect;
@@ -85,7 +88,7 @@ public class CreditsScreen implements Screen {
         float w = Gdx.graphics.getWidth();
         float h = Gdx.graphics.getHeight();
 
-        drawCentered(titleFont, "Credits", 0f, h - 30f, w, Color.WHITE);
+        drawCentered(titleFont, "Credits", 0f, h - 30f, w, HEADING_COLOR);
 
         float leftX = 40f;
         float rightX = w * 0.53f;
@@ -93,62 +96,62 @@ public class CreditsScreen implements Screen {
 
         float leftY = topY;
         leftY = drawHeading("Group Members", leftX, leftY);
-        leftY = drawLine("- Umit Yusuf GONEN", leftX, leftY, null);
-        leftY = drawLine("- Ahmet Efe CANPOLAT", leftX, leftY, null);
-        leftY = drawLine("- Burhan TURK", leftX, leftY, null);
-        leftY = drawLine("- Onur Yusuf YILMAZ", leftX, leftY, null);
-        leftY = drawLine("- Oguzhan YILMAZ", leftX, leftY, null);
+        leftY = drawLine("- Umit Yusuf GONEN", leftX, leftY, null, CONTRIBUTOR_COLOR);
+        leftY = drawLine("- Ahmet Efe CANPOLAT", leftX, leftY, null, CONTRIBUTOR_COLOR);
+        leftY = drawLine("- Burhan TURK", leftX, leftY, null, CONTRIBUTOR_COLOR);
+        leftY = drawLine("- Onur Yusuf YILMAZ", leftX, leftY, null, CONTRIBUTOR_COLOR);
+        leftY = drawLine("- Oguzhan YILMAZ", leftX, leftY, null, CONTRIBUTOR_COLOR);
 
         leftY -= 8f;
         leftY = drawHeading("Icons", leftX, leftY);
-        leftY = drawLine("- All icons found on Flaticon", leftX, leftY, "https://www.flaticon.com/");
+        leftY = drawLine("- All icons found on Flaticon", leftX, leftY, "https://www.flaticon.com/", BODY_COLOR);
 
         leftY -= 8f;
         leftY = drawHeading("Fonts", leftX, leftY);
-        drawLine("- Paytone One", leftX, leftY, "https://fonts.google.com/specimen/Paytone+One");
+        drawLine("- Paytone One", leftX, leftY, "https://fonts.google.com/specimen/Paytone+One", BODY_COLOR);
 
         float rightY = topY;
         rightY = drawHeading("Music", rightX, rightY);
-        rightY = drawLine("- Desert Oasis Music by STAROSTIN", rightX, rightY, "https://pixabay.com/music/");
-        rightY = drawLine("- Elemental Plateau Music by DanielHren", rightX, rightY, "https://pixabay.com/music/");
-        rightY = drawLine("- Main Menu Music by Roman_Sol", rightX, rightY, "https://pixabay.com/music/");
+        rightY = drawLine("- Main Menu Music by Roman_Sol", rightX, rightY, "https://pixabay.com/music/", CONTRIBUTOR_COLOR);
+        rightY = drawLine("- Elemental Plateau Music by DanielHren", rightX, rightY, "https://pixabay.com/music/", CONTRIBUTOR_COLOR);
+        rightY = drawLine("- Desert Oasis Music by STAROSTIN", rightX, rightY, "https://pixabay.com/music/", CONTRIBUTOR_COLOR);
 
         rightY -= 8f;
         rightY = drawHeading("SFX", rightX, rightY);
         rightY = drawLine("- Source Website: Pixabay Sound Effects", rightX, rightY,
-                "https://pixabay.com/sound-effects/");
-        rightY = drawLine("- Authors: Universfield, Lesiakover, floraphonic", rightX, rightY, null);
-        rightY = drawLine("  FoxBoy Tails, EAGLAXLE, Yodguard, AudioPapkin", rightX, rightY, null);
-        rightY = drawLine("  Prmodrai, freesound_community", rightX, rightY, null);
+            "https://pixabay.com/sound-effects/", BODY_COLOR);
+        rightY = drawLine("- Authors: Universfield, Lesiakover, floraphonic", rightX, rightY, null, CONTRIBUTOR_COLOR);
+        rightY = drawLine("  FoxBoy Tails, EAGLAXLE, Yodguard, AudioPapkin", rightX, rightY, null, CONTRIBUTOR_COLOR);
+        rightY = drawLine("  Prmodrai, freesound_community", rightX, rightY, null, CONTRIBUTOR_COLOR);
 
         rightY -= 8f;
         rightY = drawHeading("3D Models", rightX, rightY);
-        rightY = drawLine("- Quaternius", rightX, rightY, "https://poly.pizza/u/Quaternius");
+        rightY = drawLine("- Quaternius", rightX, rightY, "https://poly.pizza/u/Quaternius", CONTRIBUTOR_COLOR);
 
         rightY -= 8f;
         rightY = drawHeading("Systems Used", rightX, rightY);
-        rightY = drawLine("- Java", rightX, rightY, "https://www.java.com/");
-        rightY = drawLine("- libGDX", rightX, rightY, "https://libgdx.com/");
-        rightY = drawLine("- LWJGL", rightX, rightY, "https://www.lwjgl.org/");
-        rightY = drawLine("- Gradle", rightX, rightY, "https://gradle.org/");
-        rightY = drawLine("- Dreamlo", rightX, rightY, "http://dreamlo.com/");
-        rightY = drawLine("- GitHub", rightX, rightY, "https://github.com/");
+        rightY = drawLine("- Java", rightX, rightY, "https://www.java.com/", BODY_COLOR);
+        rightY = drawLine("- libGDX", rightX, rightY, "https://libgdx.com/", BODY_COLOR);
+        rightY = drawLine("- LWJGL", rightX, rightY, "https://www.lwjgl.org/", BODY_COLOR);
+        rightY = drawLine("- Gradle", rightX, rightY, "https://gradle.org/", BODY_COLOR);
+        rightY = drawLine("- Dreamlo", rightX, rightY, "http://dreamlo.com/", BODY_COLOR);
+        rightY = drawLine("- GitHub", rightX, rightY, "https://github.com/", BODY_COLOR);
     }
 
     private float drawHeading(String text, float x, float y) {
-        drawLeft(font, text, x, y, Color.WHITE);
+        drawLeft(font, text, x, y, HEADING_COLOR);
         return y - LINE_GAP;
     }
 
-    private float drawLine(String text, float x, float y, String url) {
-        drawLeft(font, text, x, y, Color.WHITE);
-        float nextY = y - (LINE_GAP * 0.95f);
+    private float drawLine(String text, float x, float y, String url, Color textColor) {
+        drawLeft(font, text, x, y, textColor);
+        float nextY = y - (LINE_GAP * 1.1f);
 
         if (url != null && !url.isEmpty()) {
-            drawLeft(font, url, x + 14f, nextY, Color.WHITE);
+            drawLeft(font, url, x + 14f, nextY, BODY_COLOR);
             glyph.setText(font, url);
             linkEntries.add(new LinkEntry(new Rectangle(x + 14f, nextY - glyph.height, glyph.width, glyph.height + 4f), url));
-            nextY -= (LINE_GAP * 0.8f);
+            nextY -= (LINE_GAP * 1.0f);
         }
 
         return nextY;
