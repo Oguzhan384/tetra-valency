@@ -4,7 +4,7 @@ public class BatEnemy extends FlyingEnemy {
     
     public BatEnemy(float maxHealth, float speed, int reward) {
         super(maxHealth, speed, reward);
-        // isFlying is already set to true in FlyingEnemy constructor
+        
     }
 
     @Override

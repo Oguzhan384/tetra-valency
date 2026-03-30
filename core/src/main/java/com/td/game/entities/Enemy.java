@@ -206,7 +206,7 @@ public class Enemy implements Disposable {
 
         Vector3 screenPos = camera.project(new Vector3(position.x, position.y + (isFlying ? 3.0f : 2.5f), position.z));
 
-        // Don't draw if behind camera
+        
         if (screenPos.z < 0 || screenPos.z > 1)
             return;
 
@@ -222,7 +222,7 @@ public class Enemy implements Disposable {
         if (element != null) {
             healthColor = new Color(element.getR(), element.getG(), element.getB(), 1f);
             if (armor > 0) {
-                healthColor.mul(0.6f, 0.6f, 0.6f, 1f); // Darker
+                healthColor.mul(0.6f, 0.6f, 0.6f, 1f); 
             }
         } else {
             float healthPercent = health / maxHealth;
@@ -287,18 +287,18 @@ public class Enemy implements Disposable {
             return;
         }
 
-        // Handle knockback movement
+        
         if (knockbackTimer > 0) {
             knockbackTimer -= deltaTime;
             position.add(knockbackVelocity.cpy().scl(deltaTime));
             
-            // If knockback ends, reset velocity
+            
             if (knockbackTimer <= 0) {
                 knockbackVelocity.setZero();
             }
             
             updateModelPosition();
-            return; // Skip normal movement during knockback
+            return; 
         }
 
         boolean endReached = isMovingBackwards ? currentWaypointIndex < 0 : currentWaypointIndex >= waypoints.size;
@@ -310,7 +310,7 @@ public class Enemy implements Disposable {
             if (direction.len2() > 0.01f) {
                 float targetRotation = (float) Math.toDegrees(Math.atan2(-direction.x, -direction.z));
 
-                // Apply blind rotation noise
+                
                 if (blindTimer > 0) {
                     targetRotation += blindRotationNoise * (float) Math.sin(blindTimer * 10f);
                 }
@@ -323,10 +323,10 @@ public class Enemy implements Disposable {
                 this.rotation += diff * 12f * deltaTime;
             }
 
-            // Calculate speed with all multipliers
+            
             float actualSpeed = baseSpeed * slowMultiplier * rootSlowMultiplier;
 
-            // Apply confusion speed variance
+            
             if (confusionTimer > 0) {
                 float variance = (float) Math.sin(confusionTimer * 5f) * confusionSpeedVariance;
                 actualSpeed *= (1f + variance);
@@ -377,18 +377,18 @@ public class Enemy implements Disposable {
             modelInstance.transform.scl(modelScaleMultiplier * visualScaleMultiplier);
             modelInstance.transform.rotate(Vector3.Y, rotation + 180f);
 
-            // Apply poison flash effect
+            
             if (poisonFlashTimer > 0) {
                 for (int i = 0; i < modelInstance.materials.size; i++) {
                     com.badlogic.gdx.graphics.g3d.Material mat = modelInstance.materials.get(i);
                     com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute ca = (com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute) 
                         mat.get(com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute.Diffuse);
                     if (ca != null) {
-                        ca.color.set(0.8f, 0.2f, 0.8f, 1f); // Poison purple flash
+                        ca.color.set(0.8f, 0.2f, 0.8f, 1f); 
                     }
                 }
             } else if (element != null) {
-                // Reset to original color
+                
                 for (int i = 0; i < modelInstance.materials.size; i++) {
                     com.badlogic.gdx.graphics.g3d.Material mat = modelInstance.materials.get(i);
                     com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute ca = (com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute) 
@@ -426,7 +426,7 @@ public class Enemy implements Disposable {
         }
 
         if (poisonFlashTimer > 0) {
-            // Visual timers should run in real frame time, independent from sim speed (1x/2x/8x/32x)
+            
             poisonFlashTimer -= Gdx.graphics.getDeltaTime();
         }
 
@@ -438,7 +438,7 @@ public class Enemy implements Disposable {
             poisonTimer -= deltaTime;
             poisonDamageCounter += deltaTime;
 
-            // Poison damage every 1.7 seconds
+            
             if (poisonDamageCounter >= poisonDamageInterval) {
                 float totalPoisonDamage = poisonDamage * poisonStacks;
                 takeDamage(totalPoisonDamage);
@@ -499,28 +499,28 @@ public class Enemy implements Disposable {
         float armorReduction = armor / (armor + 100f);
         float actualDamage = damage * (1f - armorReduction);
 
-        // Element damage multiplier - circular system with weak/strong relationships
+        
         if (attackerElement != null && this.element != null) {
             float multiplier = com.td.game.utils.CombatUtils.getDamageMultiplier(attackerElement, this.element);
             actualDamage *= multiplier;
         }
 
-        // Gold element special: takes 25% less damage from all elements
+        
         if (this.element == Element.GOLD) {
             actualDamage *= 0.75f;
         }
 
-        // Drench effect: increases lightning/light damage
+        
         if (drenchTimer > 0 && attackerElement == Element.LIGHT) {
             actualDamage *= drenchMultiplier;
         }
 
-        // Armor melt effect
+        
         if (armorMeltTimer > 0) {
             actualDamage *= armorMeltMultiplier;
         }
 
-        // Shield absorption
+        
         if (shield > 0) {
             if (shield >= actualDamage) {
                 shield -= actualDamage;
@@ -549,12 +549,12 @@ public class Enemy implements Disposable {
 
         long nowMs = TimeUtils.millis();
 
-        // Hard gate to prevent sample stacking in the same frame burst.
+        
         if (nowMs - enemyHitLastPlayedMs < 45L) {
             return;
         }
 
-        // Sliding burst window so dense waves do not spam the same SFX constantly.
+        
         if (nowMs - enemyHitBurstWindowStartMs > 320L) {
             enemyHitBurstWindowStartMs = nowMs;
             enemyHitBurstCount = 0;
@@ -640,9 +640,9 @@ public class Enemy implements Disposable {
         this.poisonTimer = Math.max(this.poisonTimer, duration);
         this.poisonDamage = damagePerSecond;
         this.poisonStacks = Math.min(this.poisonStacks + stacks, 10);
-        this.poisonDamageInterval = 1.7f; // Damage every 1.7 seconds
+        this.poisonDamageInterval = 1.7f; 
         if (!wasPoisoned) {
-            this.poisonDamageCounter = 0; // Start first tick cadence only on first application
+            this.poisonDamageCounter = 0; 
         }
     }
 
@@ -684,19 +684,19 @@ public class Enemy implements Disposable {
         this.knockbackDistance = distance;
         
         if (waypoints != null && waypoints.size > 0 && distance > 0) {
-            // Calculate backward direction (towards previous waypoint)
+            
             Vector3 backwardDirection;
             if (currentWaypointIndex > 0) {
                 backwardDirection = waypoints.get(currentWaypointIndex - 1).cpy().sub(position).nor();
             } else {
-                // Default backward direction if no previous waypoint
+                
                 backwardDirection = new Vector3(-1, 0, 0);
             }
             
-            // Set smooth knockback parameters
-            float knockbackForce = distance * 8f; // Speed multiplier for smooth animation
+            
+            float knockbackForce = distance * 8f; 
             knockbackVelocity.set(backwardDirection).scl(knockbackForce);
-            knockbackDuration = distance / knockbackForce; // Time to reach destination
+            knockbackDuration = distance / knockbackForce; 
             knockbackTimer = knockbackDuration;
         }
     }

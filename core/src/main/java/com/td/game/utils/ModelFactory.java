@@ -148,19 +148,19 @@ public class ModelFactory implements Disposable {
         
         switch (element) {
             case EARTH:
-                // Earth: Rock mesh
+                
                 return modelBuilder.createBox(0.6f, 0.6f, 0.6f, new Material(ColorAttribute.createDiffuse(color)), attributes);
             case FIRE:
-                // Fire: Cone or more complex mesh
+                
                 return modelBuilder.createCone(0.5f, 1.0f, 0.5f, 10, new Material(ColorAttribute.createDiffuse(color)), attributes);
             case AIR:
-                // Air: Flat circle or ring
+                
                 return modelBuilder.createCylinder(0.8f, 0.1f, 0.8f, 16, new Material(ColorAttribute.createDiffuse(color), new BlendingAttribute(0.5f)), attributes);
             case ICE:
-                // Ice: Shard-like box
+                
                 return modelBuilder.createBox(0.3f, 1.0f, 0.3f, new Material(ColorAttribute.createDiffuse(color)), attributes);
             case LIGHT:
-                // Light: Bright grey-yellow-white sphere (same size as poison projectile)
+                
                 Color lightColor = new Color(0.92f, 0.90f, 0.78f, 0.95f);
                 return modelBuilder.createSphere(0.9f, 0.9f, 0.9f, 16, 16,
                     new Material(
@@ -169,16 +169,16 @@ public class ModelFactory implements Disposable {
                         new BlendingAttribute(0.85f)),
                     attributes);
             case STEAM:
-                // Steam: Transparent grey sphere
+                
                 Color steamColor = new Color(0.7f, 0.7f, 0.7f, 0.6f);
                 return modelBuilder.createSphere(0.5f, 0.5f, 0.5f, 16, 16, 
                     new Material(ColorAttribute.createDiffuse(steamColor), new BlendingAttribute(0.6f)), attributes);
             case POISON:
-                // Poison: Purple-green gradient sphere with transparency
+                
                 return modelBuilder.createSphere(0.9f, 0.9f, 0.9f, 16, 16, 
                     new Material(ColorAttribute.createDiffuse(color), new BlendingAttribute(0.7f)), attributes);
             case LIFE:
-                // Life: Green orb
+                
                 return createOrbModel(color);
             default:
                 return createOrbModel(color);

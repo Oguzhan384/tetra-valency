@@ -10,7 +10,7 @@ public class GolemEnemy extends Enemy {
     public GolemEnemy(float maxHealth, float speed, int reward) {
         super(maxHealth, speed, reward);
         this.animationTime = 0f;
-        this.armor = 10f; // Armored default
+        this.armor = 10f; 
     }
 
     @Override
@@ -58,7 +58,7 @@ public class GolemEnemy extends Enemy {
         if (modelInstance != null && alive && freezeTimer <= 0 && animationController == null) {
             Node leftArm = modelInstance.getNode("leftArm");
             if (leftArm == null) {
-                float waddle = (float) Math.sin(walkTimer * 6f) * 10f; // degrees
+                float waddle = (float) Math.sin(walkTimer * 6f) * 10f; 
                 modelInstance.transform.rotate(Vector3.Z, waddle);
             }
         }

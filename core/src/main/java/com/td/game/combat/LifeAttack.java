@@ -19,7 +19,7 @@ public class LifeAttack implements AttackAction {
         if (context == null) {
             return;
         }
-        // No direct damage here. Ally revival requires a dedicated ally system, which isn't present yet.
+        
     }
 
     public static boolean canRevive(Array<Pillar> pillars, Enemy enemy) {

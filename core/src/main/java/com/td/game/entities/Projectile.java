@@ -41,7 +41,7 @@ public class Projectile {
     public void update(float delta) {
         if (!alive) return;
 
-        // If target exists, update targetPos
+        
         if (targetEnemy != null && targetEnemy.isAlive()) {
             targetPos.set(targetEnemy.getPosition());
         }
@@ -60,7 +60,7 @@ public class Projectile {
 
         if (modelInstance != null) {
             modelInstance.transform.setToTranslation(position);
-            // Optional: Rotate towards target
+            
         }
     }
 

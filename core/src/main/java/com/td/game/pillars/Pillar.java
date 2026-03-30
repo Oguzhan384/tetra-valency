@@ -93,10 +93,10 @@ public class Pillar implements Disposable {
         if (!active || currentElement == null)
             return;
 
-        // Gold pillar generates gold passively
+        
         if (currentElement == Element.GOLD || currentElement == Element.LIFE) {
-            // Gold logic handled in GameScreen or separate timer? Let's add it here.
-            // But we need a reference to economyManager.
+            
+            
             return;
         }
 
@@ -129,16 +129,16 @@ public class Pillar implements Disposable {
     private void attack(com.td.game.entities.Enemy target, com.badlogic.gdx.utils.Array<com.td.game.entities.Projectile> projectiles) {
         float damage = getActualDamage();
 
-        // LIFE charm frenzy: next attack after a kill deals 250% damage
+        
         if (lifeFrenzyReady) {
             damage *= 2.5f;
             lifeFrenzyReady = false;
         }
         
-        // Ramping damage for FIRE
+        
         if (currentElement == Element.FIRE) {
             if (focusTarget == target) {
-                focusTimer += 0.2f; // Increase focus
+                focusTimer += 0.2f; 
                 damage *= (1f + focusTimer);
             } else {
                 focusTarget = target;
@@ -146,12 +146,12 @@ public class Pillar implements Disposable {
             }
         }
 
-        // LIGHT: Damage scales with target's current HP (higher HP -> higher hit)
+        
         if (currentElement == Element.LIGHT) {
             damage = LightAttack.scaleByCurrentHp(damage, target);
         }
 
-        // Spawn Projectile
+        
         Model projectileModel = modelFactory.getProjectileModel(currentElement);
         ModelInstance mi = new ModelInstance(projectileModel);
         mi.transform.scl(0.5f);
@@ -169,7 +169,7 @@ public class Pillar implements Disposable {
     }
 
     public void update(float delta) {
-        // Legacy update, logic moved to update(delta, enemies, projectiles)
+        
     }
 
     public void render(ModelBatch modelBatch, Environment environment) {

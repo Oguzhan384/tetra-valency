@@ -577,7 +577,7 @@ public class GameScreen implements Screen {
             proj.render(modelBatch, environment);
         }
 
-        // Render enemies
+        
         for (com.td.game.entities.Enemy enemy : waveManager.getActiveEnemies()) {
             enemy.render(modelBatch, environment);
         }
@@ -2331,7 +2331,7 @@ public class GameScreen implements Screen {
 
         buildMenu.updateHover(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
 
-        // Update WaveManager
+        
         boolean wasWaveInProgress = waveManager.isWaveInProgress();
         waveManager.update(delta);
         if (wasWaveInProgress && !waveManager.isWaveInProgress() && waveManager.getCurrentWave() > 0) {
@@ -2349,7 +2349,7 @@ public class GameScreen implements Screen {
             }
         }
 
-        // Update enemies
+        
         for (com.td.game.entities.Enemy enemy : waveManager.getActiveEnemies()) {
             enemy.update(delta);
             if (enemy.hasReachedEnd()) {
@@ -2363,14 +2363,14 @@ public class GameScreen implements Screen {
                 if (!enemy.isAllied()) {
                     game.audio.playEnemyDeath();
                     int goldEarned = enemy.getReward();
-                    // Gold element grants 100% bonus (2x multiplier)
+                    
                     if (enemy.getElement() == Element.GOLD) {
                         goldEarned = (int)(goldEarned * 2f);
                     }
                     economyManager.earn(goldEarned);
                     game.audio.playGoldGain();
                     
-                    // Check for LIFE pillar revive
+                    
                     if (LifeAttack.canRevive(pillars, enemy)) {
                         reviveAsAlly(enemy);
                     }
@@ -2379,10 +2379,10 @@ public class GameScreen implements Screen {
         }
         waveManager.removeDeadEnemies();
 
-        // Update Staff Aura Buffs
+        
         updateStaffAuraBuffs();
 
-        // Update pillars and Gold passive
+        
         for (Pillar pillar : pillars) {
             int projectileCountBefore = activeProjectiles.size;
             pillar.update(delta, waveManager.getActiveEnemies(), activeProjectiles);
@@ -2391,12 +2391,12 @@ public class GameScreen implements Screen {
                 game.audio.playTowerAttackBasic();
             }
             if (pillar.isActive() && pillar.getCurrentElement() == Element.GOLD) {
-                // Gold passive: 1 gold per second per level? Let's say 2 gold/sec base.
+                
                 economyManager.earn(2.0f * delta);
             }
         }
 
-        // Update Projectiles
+        
         for (int i = activeProjectiles.size - 1; i >= 0; i--) {
             com.td.game.entities.Projectile proj = activeProjectiles.get(i);
             proj.update(delta);
@@ -2408,7 +2408,7 @@ public class GameScreen implements Screen {
             }
         }
 
-        // Update Effects
+        
         for (int i = activeEffects.size - 1; i >= 0; i--) {
             activeEffects.get(i).update(delta);
             if (!activeEffects.get(i).isAlive()) {
@@ -2416,7 +2416,7 @@ public class GameScreen implements Screen {
             }
         }
 
-        // Check game over conditions
+        
         if (economyManager.isGameOver()) {
             if (!gameOver) {
                 gameOver = true;
@@ -2745,7 +2745,7 @@ public class GameScreen implements Screen {
                     if (panelButton == 0) {
                         Element removed = selectedPillar.removeOrb();
                         if (removed != null) {
-                            // If inventory is full, orb is lost on sell.
+                            
                             inventory.addOrb(removed);
                         }
                         economyManager.earn(selectedPillar.getType().getPrice() / 2);
@@ -3149,7 +3149,7 @@ public class GameScreen implements Screen {
         uiShapeRenderer.setColor(0.1f, 0.1f, 0.15f, 0.85f);
         uiShapeRenderer.rect(px, py, panelW, panelH);
 
-        // draw health bar inside panel
+        
         float hpBarWidth = panelW - 20f * uiScale;
         float hpBarHeight = 8f * uiScale;
         float hpBarX = px + 10f * uiScale;
@@ -3204,7 +3204,7 @@ public class GameScreen implements Screen {
         textY -= lineH;
 
         uiFont.setColor(Color.WHITE);
-        // Moved the HP text slightly up to avoid overlapping with the health bar
+        
         uiFont.draw(uiBatch, hpStr, textX, textY + 5f * uiScale);
 
         uiFont.getData().setScale(uiScale);
@@ -3234,13 +3234,13 @@ public class GameScreen implements Screen {
             target.takeDamage(damage, element);
         }
 
-        // Spawn impact effect
+        
         spawnEffect(target.getPosition(), element, 0.5f, 1.0f);
 
-        // Element-specific effects
+        
         switch (element) {
             case FIRE:
-                // AoE Damage (radius 3.0)
+                
                 for (com.td.game.entities.Enemy e : waveManager.getActiveEnemies()) {
                     if (e != target && e.isAlive() && e.getPosition().dst(target.getPosition()) < 3.0f) {
                         e.takeDamage(damage * 0.5f, element);
@@ -3255,7 +3255,7 @@ public class GameScreen implements Screen {
                 target.applyKnockback(2.0f);
                 break;
             case EARTH:
-                target.applyRoot(2f, 0.5f, 0f); // Stun/Root
+                target.applyRoot(2f, 0.5f, 0f); 
                 break;
             case ICE:
                 target.applyFreeze(2f);
@@ -3270,12 +3270,12 @@ public class GameScreen implements Screen {
                 break;
         }
 
-        // Poison charm: attacks from aura-boosted pillars reduce enemy healing by 40% per stack.
+        
         if (proj.isPoisonCharmActive()) {
             target.applyRegenReduction(5.1f, 0.40f, 1);
         }
 
-        // LIFE charm: if this hit kills, killer pillar's next attack deals 250% damage.
+        
         if (!target.isAlive() && proj.isLifeCharmActive() && proj.getSourcePillar() != null) {
             proj.getSourcePillar().activateLifeFrenzy();
         }
@@ -3304,13 +3304,13 @@ public class GameScreen implements Screen {
             ally.setModel(pinkBlobModel);
         }
 
-        // Set waypoints WITHOUT resetting position (setWaypoints resets to first)
-        // Manually wire up for backwards travel from end of path
-        ally.setWaypoints(pathWaypoints); // sets waypoints + positions at start
+        
+        
+        ally.setWaypoints(pathWaypoints); 
         ally.setAllied(true);
         ally.setMovingBackwards(true);
         ally.setCurrentWaypointIndex(pathWaypoints.size - 1);
-        // Override position to end of path
+        
         if (pathWaypoints.size > 0) {
             ally.getPosition().set(pathWaypoints.get(pathWaypoints.size - 1));
         }
@@ -3356,11 +3356,11 @@ public class GameScreen implements Screen {
 
                 if (equipped != null) {
                     switch (equipped) {
-                        case LIGHT: dmgBuff = 1f + (0.04f * enemiesInAura); break; // +4% damage per enemy in aura
-                        case FIRE: dmgBuff = 1.25f; break; // +25% Damage
-                        case WATER: rngBuff = 1.25f; break; // +25% Range
-                        case LIFE: lifeCharm = true; break; // Kill frenzy: next attack 250% after a kill
-                        case POISON: poisonCharm = true; break; // Heal reduction on hit
+                        case LIGHT: dmgBuff = 1f + (0.04f * enemiesInAura); break; 
+                        case FIRE: dmgBuff = 1.25f; break; 
+                        case WATER: rngBuff = 1.25f; break; 
+                        case LIFE: lifeCharm = true; break; 
+                        case POISON: poisonCharm = true; break; 
                         default: break;
                     }
                 }

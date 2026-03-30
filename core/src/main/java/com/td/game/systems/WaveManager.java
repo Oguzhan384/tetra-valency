@@ -90,7 +90,7 @@ public class WaveManager implements Disposable {
         currentWave++;
         waveInProgress = true;
 
-        // Calculate enemies for this wave
+        
         enemiesInWave = getEnemiesForWave(currentWave);
         enemiesSpawned = 0;
         spawnTimer = 0f;
@@ -127,7 +127,7 @@ public class WaveManager implements Disposable {
         if (config != null) {
             return config.getFloat("spawnInterval", Math.max(0.8f, 2.0f - (wave * 0.05f)));
         }
-        // Faster spawning as waves progress
+        
         return Math.max(0.8f, 2.0f - (wave * 0.05f));
     }
 
@@ -135,7 +135,7 @@ public class WaveManager implements Disposable {
         if (!waveInProgress)
             return;
 
-        // Spawn enemies over time
+        
         if (enemiesSpawned < enemiesInWave) {
             spawnTimer += deltaTime;
             if (spawnTimer >= spawnInterval) {
@@ -145,7 +145,7 @@ public class WaveManager implements Disposable {
             }
         }
 
-        // Check wave completion
+        
         if (enemiesSpawned >= enemiesInWave && getAliveEnemyCount() == 0) {
             waveInProgress = false;
             if (currentWave >= MAX_WAVES) {
@@ -206,7 +206,7 @@ public class WaveManager implements Disposable {
                     Math.round(30 * (1 + wave * 0.1f)));
             enemy.setModel(batModel);
             enemy.setVisualScaleMultiplier(1.3f);
-        } else { // TYPE_PINK_BLOB
+        } else { 
             enemy = new PinkBlobEnemy(
                     55f * healthMult,
                     1.2f * speedMult,

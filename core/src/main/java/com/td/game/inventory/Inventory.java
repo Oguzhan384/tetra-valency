@@ -7,17 +7,17 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Disposable;
 import com.td.game.elements.Element;
 
-/**
- * Sadece orb'lar için envanter sistemi - Değişmez Slotlu
- * Orblar boşalan ilk slota girer.
- */
+
+
+
+
 public class Inventory implements Disposable {
 
     private static final int MAX_ORBS = 6;
     private static final int COLS = 3;
     private static final int ROWS = 2;
 
-    // Slotlar - sabit boyutlu dizi
+    
     private Element[] slots;
     private int selectedIndex;
     private int unlockedSlots;
@@ -163,7 +163,7 @@ public class Inventory implements Disposable {
         font.draw(batch, "INVENTORY", x, y + totalH + 20);
         batch.end();
 
-        // Slotlar
+        
         for (int i = 0; i < MAX_ORBS; i++) {
             int col = i % COLS;
             int row = i / COLS;
@@ -173,17 +173,17 @@ public class Inventory implements Disposable {
 
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-            // Slot arka planı
+            
             if (isLocked) {
                 shapeRenderer.setColor(0.07f, 0.07f, 0.1f, 0.8f);
             } else if (i == selectedIndex) {
-                shapeRenderer.setColor(0.4f, 0.6f, 0.3f, 0.9f); // Seçili (yeşilimsi)
+                shapeRenderer.setColor(0.4f, 0.6f, 0.3f, 0.9f); 
             } else {
-                shapeRenderer.setColor(0.15f, 0.15f, 0.18f, 0.7f); // Boş/Dolu standart
+                shapeRenderer.setColor(0.15f, 0.15f, 0.18f, 0.7f); 
             }
             shapeRenderer.rect(slotX, slotY, slotSize, slotSize);
 
-            // Orb varsa çiz
+            
             if (!isLocked && slots[i] != null) {
                 Element e = slots[i];
                 shapeRenderer.setColor(e.getR(), e.getG(), e.getB(), 1f);
@@ -193,7 +193,7 @@ public class Inventory implements Disposable {
 
             shapeRenderer.end();
 
-            // Slot çerçevesi
+            
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
             shapeRenderer.setColor(isLocked ? 0.25f : 0.4f, isLocked ? 0.25f : 0.4f, isLocked ? 0.3f : 0.5f, 1f);
             shapeRenderer.rect(slotX, slotY, slotSize, slotSize);

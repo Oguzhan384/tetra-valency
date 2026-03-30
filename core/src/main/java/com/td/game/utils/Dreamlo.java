@@ -222,10 +222,10 @@ public class Dreamlo {
         }
 
         if (isTimeBoard) {
-            // azalan
+            
             rows.sort((a, b) -> Float.compare(parseFloatSafe(a[1]), parseFloatSafe(b[1])));
         } else {
-            // artan
+            
             rows.sort((a, b) -> Integer.compare(parseIntSafe(b[1]), parseIntSafe(a[1])));
         }
 
