@@ -166,6 +166,7 @@ public class GameScreen implements Screen {
 
     private boolean gameOver;
     private boolean gameWon;
+    private boolean victorySfxPlayed;
     private boolean augmentChoiceActive;
     private int augmentOptionA;
     private int augmentOptionB;
@@ -409,6 +410,7 @@ public class GameScreen implements Screen {
         pillarPanelH = 170f * uiScale;
         gameOver = false;
         gameWon = false;
+        victorySfxPlayed = false;
         augmentChoiceActive = false;
         augmentOptionA = -1;
         augmentOptionB = -1;
@@ -467,6 +469,16 @@ public class GameScreen implements Screen {
         showMessage(msg);
         if (game != null && game.audio != null) {
             game.audio.playError();
+        }
+    }
+
+    private void playVictorySfxOnce() {
+        if (victorySfxPlayed) {
+            return;
+        }
+        victorySfxPlayed = true;
+        if (game != null && game.audio != null) {
+            game.audio.playVictory();
         }
     }
 
@@ -760,6 +772,7 @@ public class GameScreen implements Screen {
             case "win":
                 int winWave = waveManager != null ? waveManager.getCurrentWave() : 0;
                 float winTime = globalTimer;
+                playVictorySfxOnce();
                 game.setScreen(new EndgameScreen(game, EndgameScreen.EndState.WIN, mapType, winWave, winTime));
                 dispose();
                 break;
@@ -2386,7 +2399,10 @@ public class GameScreen implements Screen {
             return;
         }
         if (waveManager.areAllWavesComplete() && waveManager.getAliveEnemyCount() == 0) {
-            gameWon = true;
+            if (!gameWon) {
+                gameWon = true;
+                playVictorySfxOnce();
+            }
             com.td.game.systems.SaveManager.deleteSave(mapType);
             return;
         }
@@ -2623,6 +2639,7 @@ public class GameScreen implements Screen {
                     if (!waveManager.isWaveInProgress()) {
                         if (waveManager.areAllWavesComplete()) {
                             gameWon = true;
+                            playVictorySfxOnce();
                         } else if (!augmentChoiceActive) {
                             saveGameState();
                             tryStartNextWave();

@@ -126,6 +126,8 @@ public class CreditsScreen implements Screen {
         items.add(new CreditItem("SFX", "Used as wave complete effect", "", IconKind.NONE));
         items.add(new CreditItem("SFX", "Game Start sound effect by FoxBoy Tails", "https://pixabay.com/sound-effects/", IconKind.NONE));
         items.add(new CreditItem("SFX", "Used as wave start effect", "", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Gaming victory sound effect by EAGLAXLE", "https://pixabay.com/sound-effects/", IconKind.NONE));
+        items.add(new CreditItem("SFX", "Used as victory effect", "", IconKind.NONE));
         items.add(new CreditItem("3D Models", "3D Models (source links pending)", "", IconKind.NONE));
         
         items.add(new CreditItem("Tools/Libraries", "GitHub", "https://github.com/", IconKind.GITHUB));
