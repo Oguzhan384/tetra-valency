@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
+import com.td.game.combat.AttackContext;
+import com.td.game.combat.EarthAttack;
 import com.td.game.combat.LightAttack;
 import com.td.game.elements.Element;
 import com.td.game.entities.Enemy;
@@ -125,7 +127,7 @@ public class Pillar implements Disposable {
         if (currentCooldown <= 0) {
             com.td.game.entities.Enemy target = findTarget(enemies);
             if (target != null) {
-                attack(target, projectiles);
+                attack(target, enemies, projectiles);
                 currentCooldown = getActualAttackCooldown();
             }
         }
@@ -152,7 +154,8 @@ public class Pillar implements Disposable {
         return closest;
     }
 
-    private void attack(com.td.game.entities.Enemy target, com.badlogic.gdx.utils.Array<com.td.game.entities.Projectile> projectiles) {
+    private void attack(com.td.game.entities.Enemy target, com.badlogic.gdx.utils.Array<com.td.game.entities.Enemy> enemies,
+            com.badlogic.gdx.utils.Array<com.td.game.entities.Projectile> projectiles) {
         float damage = getActualDamage();
 
         
@@ -177,6 +180,11 @@ public class Pillar implements Disposable {
             damage = LightAttack.scaleByCurrentHp(damage, target);
         }
 
+        if (currentElement == Element.EARTH) {
+            EarthAttack.applyStunInRange(new AttackContext(this, target, enemies, 0f));
+            return;
+        }
+
         
         Model projectileModel = modelFactory.getProjectileModel(currentElement);
         ModelInstance mi = new ModelInstance(projectileModel);
@@ -191,7 +199,11 @@ public class Pillar implements Disposable {
     }
 
     private float getActualAttackCooldown() {
-        return baseAttackCooldown / (type.getAttackSpeedMult() * bonusAttackSpeedMult);
+        float defaultCooldown = baseAttackCooldown / (type.getAttackSpeedMult() * bonusAttackSpeedMult);
+        if (currentElement == Element.EARTH) {
+            return EarthAttack.getAttackCooldown(defaultCooldown);
+        }
+        return defaultCooldown;
     }
 
     public void update(float delta) {

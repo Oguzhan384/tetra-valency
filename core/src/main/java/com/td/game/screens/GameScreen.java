@@ -3342,9 +3342,6 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             case AIR:
                 target.applyKnockback(2.0f);
                 break;
-            case EARTH:
-                target.applyRoot(2f, 0.5f, 0f); 
-                break;
             case ICE:
                 target.applyFreeze(2f);
                 break;
