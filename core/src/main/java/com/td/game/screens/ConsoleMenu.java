@@ -1,6 +1,7 @@
 package com.td.game.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -12,6 +13,23 @@ import com.td.game.systems.EconomyManager;
 import com.td.game.systems.WaveManager;
 
 public class ConsoleMenu {
+    public interface Context {
+        EconomyManager getEconomyManager();
+        WaveManager getWaveManager();
+        float getElapsedTime();
+        void showMessage(String msg);
+        void clearGameOver();
+        void killAllEnemies();
+        void removeDeadEnemies();
+        boolean openEndgameForKillAllIfNeeded(float elapsedTime);
+        void winNormal(float elapsedTime);
+        void loseEndless(float elapsedTime);
+        void lose(float elapsedTime);
+        boolean isAugmentAcquired(int id);
+        void applyAugmentById(int id);
+        void addAcquiredAugment(int id);
+    }
+
     public static class Layout {
         public final Rectangle panel = new Rectangle();
         public final Rectangle livesInputBox = new Rectangle();
@@ -32,22 +50,135 @@ public class ConsoleMenu {
         }
     }
 
-    public void render(boolean open,
-                       int screenWidth,
+    private static final int INPUT_NONE = 0;
+    private static final int INPUT_LIVES = 1;
+    private static final int INPUT_WAVE = 2;
+    private static final int INPUT_GOLD = 3;
+    private static final int INPUT_AUGMENT = 4;
+    private static final int MAX_AUGMENT_ID = 8;
+
+    private boolean open = false;
+    private int activeInput = INPUT_NONE;
+    private String livesInput = "";
+    private String waveInput = "";
+    private String goldInput = "";
+    private String augmentInput = "";
+    private boolean coreShieldEnabled = false;
+
+    public boolean isOpen() {
+        return open;
+    }
+
+    public boolean isCoreShieldEnabled() {
+        return coreShieldEnabled;
+    }
+
+    public void toggle() {
+        open = !open;
+        activeInput = INPUT_NONE;
+        if (open) {
+            livesInput = "";
+            waveInput = "";
+            goldInput = "";
+            augmentInput = "";
+        }
+    }
+
+    public boolean handleKeyDown(int keycode, Context ctx) {
+        if (keycode == Input.Keys.GRAVE) {
+            toggle();
+            return true;
+        }
+        if (!open) {
+            return false;
+        }
+        if (activeInput != INPUT_NONE) {
+            if (keycode == Input.Keys.BACKSPACE) {
+                removeLastInputChar();
+                return true;
+            }
+            if (keycode == Input.Keys.FORWARD_DEL) {
+                setActiveInputValue("");
+                return true;
+            }
+            if (keycode == Input.Keys.ENTER || keycode == Input.Keys.NUMPAD_ENTER) {
+                applyActiveInput(ctx);
+                return true;
+            }
+            if (keycode == Input.Keys.ESCAPE) {
+                activeInput = INPUT_NONE;
+                return true;
+            }
+        } else {
+            if (keycode == Input.Keys.NUM_1) {
+                handleCommand("lose", ctx);
+                return true;
+            }
+            if (keycode == Input.Keys.NUM_2) {
+                handleCommand("loseendless", ctx);
+                return true;
+            }
+            if (keycode == Input.Keys.NUM_3) {
+                handleCommand("winnormal", ctx);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean handleKeyTyped(char character) {
+        if (!open || activeInput == INPUT_NONE) {
+            return false;
+        }
+        if (character >= '0' && character <= '9') {
+            String value = getActiveInputValue();
+            if (value.length() < 6) {
+                setActiveInputValue(value + character);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public boolean handleTouchDown(int screenX, int flippedY, int screenWidth, int screenHeight, int button, float uiScale, Context ctx) {
+        if (!open || button != Input.Buttons.LEFT) {
+            return false;
+        }
+        Layout layout = getLayout(screenWidth, screenHeight, uiScale, getButtonLabels().length);
+        if (isInRect(screenX, flippedY, layout.livesInputBox.x, layout.livesInputBox.y,
+                layout.livesInputBox.width, layout.livesInputBox.height)) {
+            activeInput = INPUT_LIVES;
+            return true;
+        }
+        if (isInRect(screenX, flippedY, layout.waveBox.x, layout.waveBox.y, layout.waveBox.width, layout.waveBox.height)) {
+            activeInput = INPUT_WAVE;
+            return true;
+        }
+        if (isInRect(screenX, flippedY, layout.goldInputBox.x, layout.goldInputBox.y,
+                layout.goldInputBox.width, layout.goldInputBox.height)) {
+            activeInput = INPUT_GOLD;
+            return true;
+        }
+        if (isInRect(screenX, flippedY, layout.augmentInputBox.x, layout.augmentInputBox.y,
+                layout.augmentInputBox.width, layout.augmentInputBox.height)) {
+            activeInput = INPUT_AUGMENT;
+            return true;
+        }
+        activeInput = INPUT_NONE;
+        for (int i = 0; i < layout.buttons.length; i++) {
+            Rectangle buttonRect = layout.buttons[i];
+            if (isInRect(screenX, flippedY, buttonRect.x, buttonRect.y, buttonRect.width, buttonRect.height)) {
+                handleCommand(getButtonCommands()[i], ctx);
+                return true;
+            }
+        }
+        return isInRect(screenX, flippedY, layout.panel.x, layout.panel.y, layout.panel.width, layout.panel.height);
+    }
+
+    public void render(int screenWidth,
                        int screenHeight,
                        float uiScale,
-                       int activeConsoleInput,
-                       int inputLives,
-                       int inputWave,
-                       int inputGold,
-                       int inputAugment,
-                       String[] buttonLabels,
-                       String livesInput,
-                       String waveInput,
-                       String goldInput,
-                       String augmentInput,
-                       EconomyManager economyManager,
-                       WaveManager waveManager,
+                       Context ctx,
                        SpriteBatch uiBatch,
                        ShapeRenderer uiShapeRenderer,
                        BitmapFont uiFont,
@@ -57,6 +188,7 @@ public class ConsoleMenu {
             return;
         }
 
+        String[] buttonLabels = getButtonLabels();
         Layout layout = getLayout(screenWidth, screenHeight, uiScale, buttonLabels.length);
         float defaultFontScale = uiScale * 0.54f;
         float defaultLargeFontScale = uiScale * 0.72f;
@@ -67,10 +199,10 @@ public class ConsoleMenu {
         uiShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         uiShapeRenderer.setColor(0.05f, 0.05f, 0.05f, 0.92f);
         uiShapeRenderer.rect(layout.panel.x, layout.panel.y, layout.panel.width, layout.panel.height);
-        drawInputBox(uiShapeRenderer, layout.livesInputBox, activeConsoleInput == inputLives);
-        drawInputBox(uiShapeRenderer, layout.waveBox, activeConsoleInput == inputWave);
-        drawInputBox(uiShapeRenderer, layout.goldInputBox, activeConsoleInput == inputGold);
-        drawInputBox(uiShapeRenderer, layout.augmentInputBox, activeConsoleInput == inputAugment);
+        drawInputBox(uiShapeRenderer, layout.livesInputBox, activeInput == INPUT_LIVES);
+        drawInputBox(uiShapeRenderer, layout.waveBox, activeInput == INPUT_WAVE);
+        drawInputBox(uiShapeRenderer, layout.goldInputBox, activeInput == INPUT_GOLD);
+        drawInputBox(uiShapeRenderer, layout.augmentInputBox, activeInput == INPUT_AUGMENT);
         uiShapeRenderer.setColor(0.16f, 0.16f, 0.16f, 0.98f);
         for (Rectangle button : layout.buttons) {
             uiShapeRenderer.rect(button.x, button.y, button.width, button.height);
@@ -100,29 +232,32 @@ public class ConsoleMenu {
         uiFont.getData().setScale(uiScale * 0.50f);
         uiFont.setColor(Color.WHITE);
 
+        EconomyManager economy = ctx.getEconomyManager();
+        WaveManager waves = ctx.getWaveManager();
+
         String livesLabel = "HEALTH";
         String livesPlaceholder = "";
-        if (economyManager != null) {
-            livesLabel = "HEALTH (" + economyManager.getLives() + ")";
-            livesPlaceholder = String.valueOf(economyManager.getLives());
+        if (economy != null) {
+            livesLabel = "HEALTH (" + economy.getLives() + ")";
+            livesPlaceholder = String.valueOf(economy.getLives());
         }
         drawFieldLabel(uiBatch, uiFont, glyphLayout, livesLabel, layout.livesLabelY, layout.livesInputBox);
         drawInputField(uiBatch, uiFontLarge, glyphLayout, uiScale, layout.livesInputBox, livesInput, livesPlaceholder);
 
         String waveLabel = "WAVE";
         String wavePlaceholder = "";
-        if (waveManager != null) {
-            waveLabel = "WAVE (" + waveManager.getCurrentWave() + ")";
-            wavePlaceholder = String.valueOf(waveManager.getCurrentWave());
+        if (waves != null) {
+            waveLabel = "WAVE (" + waves.getCurrentWave() + ")";
+            wavePlaceholder = String.valueOf(waves.getCurrentWave());
         }
         drawFieldLabel(uiBatch, uiFont, glyphLayout, waveLabel, layout.waveLabelY, layout.waveBox);
         drawInputField(uiBatch, uiFontLarge, glyphLayout, uiScale, layout.waveBox, waveInput, wavePlaceholder);
 
         String goldLabel = "GOLD";
         String goldPlaceholder = "";
-        if (economyManager != null) {
-            goldLabel = "GOLD (" + economyManager.getGold() + ")";
-            goldPlaceholder = String.valueOf(economyManager.getGold());
+        if (economy != null) {
+            goldLabel = "GOLD (" + economy.getGold() + ")";
+            goldPlaceholder = String.valueOf(economy.getGold());
         }
         drawFieldLabel(uiBatch, uiFont, glyphLayout, goldLabel, layout.goldLabelY, layout.goldInputBox);
         drawInputField(uiBatch, uiFontLarge, glyphLayout, uiScale, layout.goldInputBox, goldInput, goldPlaceholder);
@@ -143,7 +278,235 @@ public class ConsoleMenu {
         uiFontLarge.getData().setScale(defaultLargeFontScale);
     }
 
-    public Layout getLayout(int screenWidth, int screenHeight, float uiScale, int buttonCount) {
+    private void handleCommand(String command, Context ctx) {
+        if (command == null) {
+            return;
+        }
+        String cmd = command.trim().toLowerCase(java.util.Locale.ROOT);
+        float elapsedTime = ctx.getElapsedTime();
+        switch (cmd) {
+            case "killall":
+                ctx.killAllEnemies();
+                ctx.removeDeadEnemies();
+                ctx.openEndgameForKillAllIfNeeded(elapsedTime);
+                break;
+            case "winnormal":
+                ctx.winNormal(elapsedTime);
+                break;
+            case "loseendless":
+                ctx.loseEndless(elapsedTime);
+                break;
+            case "lose":
+                ctx.lose(elapsedTime);
+                break;
+            case "coreinvuln":
+                coreShieldEnabled = !coreShieldEnabled;
+                ctx.showMessage(coreShieldEnabled ? "Core shield enabled." : "Core shield disabled.");
+                break;
+            case "addaugment":
+                applyAugmentFromConsole(ctx);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void applyActiveInput(Context ctx) {
+        switch (activeInput) {
+            case INPUT_LIVES:
+                setLivesFromConsole(ctx);
+                break;
+            case INPUT_WAVE:
+                jumpToWaveFromConsole(ctx);
+                break;
+            case INPUT_GOLD:
+                setGoldFromConsole(ctx);
+                break;
+            case INPUT_AUGMENT:
+                applyAugmentFromConsole(ctx);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void setLivesFromConsole(Context ctx) {
+        EconomyManager economy = ctx.getEconomyManager();
+        if (economy == null) {
+            return;
+        }
+        String rawValue = livesInput == null ? "" : livesInput.trim();
+        if (rawValue.isEmpty()) {
+            ctx.showMessage("Enter a life value first.");
+            return;
+        }
+        try {
+            int value = Integer.parseInt(rawValue);
+            if (value < 0) {
+                ctx.showMessage("Life cannot be negative.");
+                return;
+            }
+            economy.setLives(value);
+            ctx.clearGameOver();
+            activeInput = INPUT_NONE;
+            ctx.showMessage("Lives set to " + value);
+        } catch (NumberFormatException ex) {
+            ctx.showMessage("Life must be a number.");
+        }
+    }
+
+    private void setGoldFromConsole(Context ctx) {
+        EconomyManager economy = ctx.getEconomyManager();
+        if (economy == null) {
+            return;
+        }
+        String rawValue = goldInput == null ? "" : goldInput.trim();
+        if (rawValue.isEmpty()) {
+            ctx.showMessage("Enter a gold value first.");
+            return;
+        }
+        try {
+            int value = Integer.parseInt(rawValue);
+            if (value < 0) {
+                ctx.showMessage("Gold cannot be negative.");
+                return;
+            }
+            economy.setGold(value);
+            activeInput = INPUT_NONE;
+            ctx.showMessage("Gold set to " + value);
+        } catch (NumberFormatException ex) {
+            ctx.showMessage("Gold must be a number.");
+        }
+    }
+
+    private void jumpToWaveFromConsole(Context ctx) {
+        WaveManager waveManager = ctx.getWaveManager();
+        if (waveManager == null) {
+            return;
+        }
+
+        String rawValue = waveInput == null ? "" : waveInput.trim();
+        if (rawValue.isEmpty()) {
+            ctx.showMessage("Enter a wave number first.");
+            return;
+        }
+
+        int targetWave;
+        try {
+            targetWave = Integer.parseInt(rawValue);
+        } catch (NumberFormatException ex) {
+            ctx.showMessage("Wave must be a number.");
+            return;
+        }
+
+        if (targetWave < 1) {
+            ctx.showMessage("Wave must be at least 1.");
+            return;
+        }
+
+        int waveCap = waveManager.getMaxWaves();
+        boolean firstFiftyCleared = waveManager.getCurrentWave() > waveCap
+                || (waveManager.getCurrentWave() >= waveCap && waveManager.areAllWavesComplete());
+        int effectiveWave = targetWave;
+
+        if (!firstFiftyCleared && targetWave > waveCap) {
+            effectiveWave = waveCap;
+        } else if (firstFiftyCleared && targetWave < waveCap) {
+            effectiveWave = waveCap;
+        }
+
+        ctx.killAllEnemies();
+        waveManager.removeDeadEnemies();
+        waveManager.jumpToWave(effectiveWave);
+        waveManager.startNextWave();
+        waveInput = String.valueOf(effectiveWave);
+        activeInput = INPUT_NONE;
+        ctx.showMessage("Jumped to wave " + effectiveWave);
+    }
+
+    private void applyAugmentFromConsole(Context ctx) {
+        String rawValue = augmentInput == null ? "" : augmentInput.trim();
+        if (rawValue.isEmpty()) {
+            ctx.showMessage("Enter an augment id first.");
+            return;
+        }
+        int id;
+        try {
+            id = Integer.parseInt(rawValue);
+        } catch (NumberFormatException ex) {
+            ctx.showMessage("Augment id must be a number.");
+            return;
+        }
+        if (id < 0 || id > MAX_AUGMENT_ID) {
+            ctx.showMessage("Augment id must be between 0 and " + MAX_AUGMENT_ID + ".");
+            return;
+        }
+        if (ctx.isAugmentAcquired(id)) {
+            ctx.showMessage("Augment already acquired.");
+            return;
+        }
+        ctx.applyAugmentById(id);
+        ctx.addAcquiredAugment(id);
+        activeInput = INPUT_NONE;
+    }
+
+    private void removeLastInputChar() {
+        String value = getActiveInputValue();
+        if (!value.isEmpty()) {
+            setActiveInputValue(value.substring(0, value.length() - 1));
+        }
+    }
+
+    private String getActiveInputValue() {
+        switch (activeInput) {
+            case INPUT_LIVES:
+                return livesInput;
+            case INPUT_WAVE:
+                return waveInput;
+            case INPUT_GOLD:
+                return goldInput;
+            case INPUT_AUGMENT:
+                return augmentInput;
+            default:
+                return "";
+        }
+    }
+
+    private void setActiveInputValue(String value) {
+        switch (activeInput) {
+            case INPUT_LIVES:
+                livesInput = value;
+                break;
+            case INPUT_WAVE:
+                waveInput = value;
+                break;
+            case INPUT_GOLD:
+                goldInput = value;
+                break;
+            case INPUT_AUGMENT:
+                augmentInput = value;
+                break;
+            default:
+                break;
+        }
+    }
+
+    private String[] getButtonLabels() {
+        return new String[] {
+                "KILL ALL",
+                "WIN NORMAL",
+                "LOSE ENDLESS",
+                "LOSE",
+                coreShieldEnabled ? "CORE SHIELD: ON" : "CORE SHIELD: OFF",
+                "ADD AUGMENT"
+        };
+    }
+
+    private String[] getButtonCommands() {
+        return new String[] { "killall", "winnormal", "loseendless", "lose", "coreinvuln", "addaugment" };
+    }
+
+    private Layout getLayout(int screenWidth, int screenHeight, float uiScale, int buttonCount) {
         Layout layout = new Layout(buttonCount);
         float sideMargin = 24f * uiScale;
         float topMargin = 64f * uiScale;
@@ -157,7 +520,7 @@ public class ConsoleMenu {
         float sectionGap = 10f * uiScale;
         float buttonGap = 8f * uiScale;
         float buttonH = 30f * uiScale;
-        float extraButtonTopGap = 10f * uiScale;
+        float extraButtonTopGap = 14f * uiScale;
         float panelH = titleInset + titleBlockH + titleToFirstLabel
                 + (labelToInputGap + inputBoxH)
                 + (sectionGap + labelToInputGap + inputBoxH)
@@ -204,47 +567,6 @@ public class ConsoleMenu {
         }
 
         return layout;
-    }
-
-    public int getButtonIndexAt(int screenX, int flippedY, int screenWidth, int screenHeight, float uiScale, int buttonCount) {
-        Layout layout = getLayout(screenWidth, screenHeight, uiScale, buttonCount);
-        for (int i = 0; i < layout.buttons.length; i++) {
-            Rectangle button = layout.buttons[i];
-            if (isInRect(screenX, flippedY, button.x, button.y, button.width, button.height)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public int getInputTargetAt(int screenX,
-                                int flippedY,
-                                int screenWidth,
-                                int screenHeight,
-                                float uiScale,
-                                int inputNone,
-                                int inputLives,
-                                int inputWave,
-                                int inputGold,
-                                int inputAugment,
-                                int buttonCount) {
-        Layout layout = getLayout(screenWidth, screenHeight, uiScale, buttonCount);
-        if (isInRect(screenX, flippedY, layout.livesInputBox.x, layout.livesInputBox.y,
-                layout.livesInputBox.width, layout.livesInputBox.height)) {
-            return inputLives;
-        }
-        if (isInRect(screenX, flippedY, layout.waveBox.x, layout.waveBox.y, layout.waveBox.width, layout.waveBox.height)) {
-            return inputWave;
-        }
-        if (isInRect(screenX, flippedY, layout.goldInputBox.x, layout.goldInputBox.y,
-                layout.goldInputBox.width, layout.goldInputBox.height)) {
-            return inputGold;
-        }
-        if (isInRect(screenX, flippedY, layout.augmentInputBox.x, layout.augmentInputBox.y,
-                layout.augmentInputBox.width, layout.augmentInputBox.height)) {
-            return inputAugment;
-        }
-        return inputNone;
     }
 
     private void drawInputBox(ShapeRenderer uiShapeRenderer, Rectangle box, boolean active) {

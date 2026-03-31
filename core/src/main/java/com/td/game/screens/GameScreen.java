@@ -49,7 +49,7 @@ import com.td.game.ui.WizardStaffUI;
 import com.td.game.utils.Constants;
 import com.td.game.utils.ModelFactory;
 
-public class GameScreen implements Screen {
+public class GameScreen implements Screen, ConsoleMenu.Context {
 
     private TowerDefenseGame game;
     private final GameMap.MapType mapType;
@@ -130,12 +130,6 @@ public class GameScreen implements Screen {
     private int speedIndex;
     private static final float[] SPEED_MULTIPLIERS = { 1f, 2f, 8f, 32f };
     private boolean autoplayEnabled;
-    private boolean consoleOpen;
-    private int activeConsoleInput;
-    private String consoleWaveInput = "";
-    private String consoleLivesInput = "";
-    private String consoleGoldInput = "";
-    private String consoleAugmentInput = "";
     private float pauseIconX;
     private float pauseIconY;
     private float pauseIconSize;
@@ -207,17 +201,9 @@ public class GameScreen implements Screen {
     private float globalAttackSpeedMult = 1f;
     private float staffAuraRadius = 8f;
     private boolean lifeReviveBossesEnabled = false;
-    private boolean coreInvulnerable = false;
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
-    private static final int CONSOLE_INPUT_NONE = 0;
-    private static final int CONSOLE_INPUT_LIVES = 1;
-    private static final int CONSOLE_INPUT_WAVE = 2;
-    private static final int CONSOLE_INPUT_GOLD = 3;
-    private static final int CONSOLE_INPUT_AUGMENT = 4;
-    private static final String[] CONSOLE_BUTTON_COMMANDS = { "killall", "winnormal", "loseendless", "coreinvuln", "addaugment" };
-    private static final int MAX_AUGMENT_ID = 8;
 
     public GameScreen(TowerDefenseGame game) {
         this(game, GameMap.MapType.ELEMENTAL_CASTLE, false);
@@ -437,7 +423,6 @@ public class GameScreen implements Screen {
         paused = false;
         speedIndex = 0;
         autoplayEnabled = false;
-        consoleOpen = false;
 
 
         game.audio.playMapMusic(mapType);
@@ -470,6 +455,77 @@ public class GameScreen implements Screen {
     public void showMessage(String msg) {
         this.uiMessage = msg;
         this.uiMessageTimer = 2.0f;
+    }
+
+    @Override
+    public EconomyManager getEconomyManager() {
+        return economyManager;
+    }
+
+    @Override
+    public WaveManager getWaveManager() {
+        return waveManager;
+    }
+
+    @Override
+    public float getElapsedTime() {
+        return globalTimer;
+    }
+
+    @Override
+    public void clearGameOver() {
+        gameOver = false;
+    }
+
+    @Override
+    public void removeDeadEnemies() {
+        if (waveManager != null) {
+            waveManager.removeDeadEnemies();
+        }
+    }
+
+    @Override
+    public void winNormal(float elapsedTime) {
+        int lastWave = waveManager != null ? waveManager.getCurrentWave() : 0;
+        playVictorySfxOnce();
+        game.setScreen(new EndgameScreen(game, EndgameScreen.EndState.WIN, mapType, lastWave, elapsedTime));
+        dispose();
+    }
+
+    @Override
+    public void loseEndless(float elapsedTime) {
+        int lastWave = waveManager != null ? waveManager.getCurrentWave() : 0;
+        playLoseSfxOnce();
+        game.setScreen(new EndgameScreen(game, EndgameScreen.EndState.ENDLESS_FINISH, mapType, lastWave, elapsedTime));
+        dispose();
+    }
+
+    @Override
+    public void lose(float elapsedTime) {
+        int lastWave = waveManager != null ? waveManager.getCurrentWave() : 0;
+        playLoseSfxOnce();
+        game.setScreen(new EndgameScreen(game, EndgameScreen.EndState.LOSE, mapType, lastWave, elapsedTime));
+        dispose();
+    }
+
+    @Override
+    public boolean isAugmentAcquired(int id) {
+        for (int i = 0; i < acquiredAugments.size; i++) {
+            if (acquiredAugments.get(i).id == id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void applyAugmentById(int id) {
+        applyAugment(id);
+    }
+
+    @Override
+    public void addAcquiredAugment(int id) {
+        acquiredAugments.add(new AcquiredAugment(id));
     }
 
     private void setPaused(boolean value) {
@@ -508,18 +564,6 @@ public class GameScreen implements Screen {
             game.audio.playLose();
         }
     }
-
-    public void toggleConsole() {
-        consoleOpen = !consoleOpen;
-        activeConsoleInput = CONSOLE_INPUT_NONE;
-        if (consoleOpen) {
-            consoleLivesInput = "";
-            consoleWaveInput = "";
-            consoleGoldInput = "";
-            consoleAugmentInput = "";
-        }
-    }
-
 
     public void killAllEnemies() {
         if (waveManager != null) {
@@ -728,348 +772,16 @@ public class GameScreen implements Screen {
     }
 
     private void renderConsoleOverlay(int screenWidth, int screenHeight) {
-        String[] buttonLabels = getConsoleButtonLabels();
-        consoleMenu.render(consoleOpen,
-                screenWidth,
+        consoleMenu.render(screenWidth,
                 screenHeight,
                 uiScale,
-                activeConsoleInput,
-                CONSOLE_INPUT_LIVES,
-                CONSOLE_INPUT_WAVE,
-                CONSOLE_INPUT_GOLD,
-                CONSOLE_INPUT_AUGMENT,
-                buttonLabels,
-                consoleLivesInput,
-                consoleWaveInput,
-                consoleGoldInput,
-                consoleAugmentInput,
-                economyManager,
-                waveManager,
+                this,
                 uiBatch,
                 uiShapeRenderer,
                 uiFont,
                 uiFontLarge,
                 glyphLayout);
     }
-
-    private void handleConsoleCommand(String rawCommand) {
-        if (rawCommand == null) {
-            return;
-        }
-        String command = rawCommand.trim();
-        if (command.isEmpty()) {
-            return;
-        }
-        command = command.toLowerCase(Locale.ROOT);
-        int lastWave = waveManager != null ? waveManager.getCurrentWave() : 0;
-        float elapsedTime = globalTimer;
-
-        switch (command) {
-            case "help":
-                break;
-            case "wave":
-                jumpToWaveFromConsole();
-                break;
-            case "killall":
-                killAllEnemies();
-                waveManager.removeDeadEnemies();
-                if (openEndgameForKillAllIfNeeded(elapsedTime)) {
-                    return;
-                }
-                break;
-            case "winnormal":
-                playVictorySfxOnce();
-                game.setScreen(new EndgameScreen(game, EndgameScreen.EndState.WIN, mapType, lastWave, elapsedTime));
-                dispose();
-                break;
-            case "loseendless":
-                playLoseSfxOnce();
-                game.setScreen(new EndgameScreen(game, EndgameScreen.EndState.ENDLESS_FINISH, mapType, lastWave, elapsedTime));
-                dispose();
-                break;
-            case "coreinvuln":
-                coreInvulnerable = !coreInvulnerable;
-                showMessage(coreInvulnerable ? "Core shield enabled." : "Core shield disabled.");
-                break;
-            case "addaugment":
-                applyAugmentFromConsole();
-                break;
-            default:
-                break;
-        }
-    }
-
-    private String[] getConsoleButtonLabels() {
-        return new String[] {
-                "KILL ALL",
-                "WIN NORMAL",
-                "LOSE ENDLESS",
-                coreInvulnerable ? "CORE SHIELD: ON" : "CORE SHIELD: OFF",
-                "ADD AUGMENT"
-        };
-    }
-
-    private void jumpToWaveFromConsole() {
-        if (waveManager == null) {
-            return;
-        }
-
-        String rawValue = consoleWaveInput == null ? "" : consoleWaveInput.trim();
-        if (rawValue.isEmpty()) {
-            showMessage("Enter a wave number first.");
-            return;
-        }
-
-        int targetWave;
-        try {
-            targetWave = Integer.parseInt(rawValue);
-        } catch (NumberFormatException ex) {
-            showMessage("Wave must be a number.");
-            return;
-        }
-
-        if (targetWave < 1) {
-            showMessage("Wave must be at least 1.");
-            return;
-        }
-
-        int waveCap = waveManager.getMaxWaves();
-        boolean firstFiftyCleared = hasClearedFirstFiftyWaves();
-        int effectiveWave = targetWave;
-
-        if (!firstFiftyCleared && targetWave > waveCap) {
-            effectiveWave = waveCap;
-        } else if (firstFiftyCleared && targetWave < waveCap) {
-            effectiveWave = waveCap;
-        }
-
-        killAllEnemies();
-        waveManager.removeDeadEnemies();
-        waveManager.jumpToWave(effectiveWave);
-        waveManager.startNextWave();
-        consoleWaveInput = String.valueOf(effectiveWave);
-        activeConsoleInput = CONSOLE_INPUT_NONE;
-        showMessage("Jumped to wave " + effectiveWave);
-    }
-
-    private void setLivesFromConsole() {
-        if (economyManager == null) {
-            return;
-        }
-        String rawValue = consoleLivesInput == null ? "" : consoleLivesInput.trim();
-        if (rawValue.isEmpty()) {
-            showMessage("Enter a life value first.");
-            return;
-        }
-        try {
-            int value = Integer.parseInt(rawValue);
-            if (value < 0) {
-                showMessage("Life cannot be negative.");
-                return;
-            }
-            economyManager.setLives(value);
-            gameOver = false;
-            activeConsoleInput = CONSOLE_INPUT_NONE;
-            showMessage("Lives set to " + value);
-        } catch (NumberFormatException ex) {
-            showMessage("Life must be a number.");
-        }
-    }
-
-    private void setGoldFromConsole() {
-        if (economyManager == null) {
-            return;
-        }
-        String rawValue = consoleGoldInput == null ? "" : consoleGoldInput.trim();
-        if (rawValue.isEmpty()) {
-            showMessage("Enter a gold value first.");
-            return;
-        }
-        try {
-            int value = Integer.parseInt(rawValue);
-            if (value < 0) {
-                showMessage("Gold cannot be negative.");
-                return;
-            }
-            economyManager.setGold(value);
-            activeConsoleInput = CONSOLE_INPUT_NONE;
-            showMessage("Gold set to " + value);
-        } catch (NumberFormatException ex) {
-            showMessage("Gold must be a number.");
-        }
-    }
-
-    private void applyAugmentFromConsole() {
-        String rawValue = consoleAugmentInput == null ? "" : consoleAugmentInput.trim();
-        if (rawValue.isEmpty()) {
-            showMessage("Enter an augment id first.");
-            return;
-        }
-        int id;
-        try {
-            id = Integer.parseInt(rawValue);
-        } catch (NumberFormatException ex) {
-            showMessage("Augment id must be a number.");
-            return;
-        }
-        if (id < 0 || id > MAX_AUGMENT_ID) {
-            showMessage("Augment id must be between 0 and " + MAX_AUGMENT_ID + ".");
-            return;
-        }
-        if (isAugmentAcquired(id)) {
-            showMessage("Augment already acquired.");
-            return;
-        }
-        applyAugment(id);
-        acquiredAugments.add(new AcquiredAugment(id));
-        activeConsoleInput = CONSOLE_INPUT_NONE;
-    }
-
-    private boolean isAugmentAcquired(int id) {
-        for (int i = 0; i < acquiredAugments.size; i++) {
-            if (acquiredAugments.get(i).id == id) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private int getConsoleButtonIndexAt(int screenX, int flippedY, int screenWidth, int screenHeight) {
-        if (!consoleOpen) {
-            return -1;
-        }
-        return consoleMenu.getButtonIndexAt(screenX, flippedY, screenWidth, screenHeight, uiScale,
-                CONSOLE_BUTTON_COMMANDS.length);
-    }
-
-    private boolean isInConsoleArea(int screenX, int flippedY, int screenWidth, int screenHeight) {
-        if (!consoleOpen) {
-            return false;
-        }
-        ConsoleMenu.Layout layout = consoleMenu.getLayout(screenWidth, screenHeight, uiScale, CONSOLE_BUTTON_COMMANDS.length);
-        return isInRect(screenX, flippedY, layout.panel.x, layout.panel.y, layout.panel.width, layout.panel.height);
-    }
-
-    private int getConsoleInputTargetAt(int screenX, int flippedY, int screenWidth, int screenHeight) {
-        if (!consoleOpen) {
-            return CONSOLE_INPUT_NONE;
-        }
-        return consoleMenu.getInputTargetAt(screenX, flippedY, screenWidth, screenHeight, uiScale,
-                CONSOLE_INPUT_NONE,
-                CONSOLE_INPUT_LIVES,
-                CONSOLE_INPUT_WAVE,
-                CONSOLE_INPUT_GOLD,
-                CONSOLE_INPUT_AUGMENT,
-                CONSOLE_BUTTON_COMMANDS.length);
-    }
-
-    private boolean handleConsoleKeyDown(int keycode) {
-        if (!consoleOpen || activeConsoleInput == CONSOLE_INPUT_NONE) {
-            return false;
-        }
-
-        if (keycode == Input.Keys.BACKSPACE) {
-            removeLastConsoleInputChar();
-            return true;
-        }
-        if (keycode == Input.Keys.FORWARD_DEL) {
-            setActiveConsoleInputValue("");
-            return true;
-        }
-        if (keycode == Input.Keys.ENTER || keycode == Input.Keys.NUMPAD_ENTER) {
-            applyActiveConsoleInput();
-            return true;
-        }
-        if (keycode == Input.Keys.ESCAPE) {
-            activeConsoleInput = CONSOLE_INPUT_NONE;
-            return true;
-        }
-        return false;
-    }
-
-    private boolean handleConsoleKeyTyped(char character) {
-        if (!consoleOpen || activeConsoleInput == CONSOLE_INPUT_NONE) {
-            return false;
-        }
-
-        if (character >= '0' && character <= '9') {
-            String value = getActiveConsoleInputValue();
-            if (value.length() < 6) {
-                setActiveConsoleInputValue(value + character);
-            }
-            return true;
-        }
-        if (character == '\b') {
-            removeLastConsoleInputChar();
-            return true;
-        }
-        if (character == '\r' || character == '\n') {
-            applyActiveConsoleInput();
-            return true;
-        }
-        return false;
-    }
-
-    private String getActiveConsoleInputValue() {
-        switch (activeConsoleInput) {
-            case CONSOLE_INPUT_LIVES:
-                return consoleLivesInput;
-            case CONSOLE_INPUT_WAVE:
-                return consoleWaveInput;
-            case CONSOLE_INPUT_GOLD:
-                return consoleGoldInput;
-            case CONSOLE_INPUT_AUGMENT:
-                return consoleAugmentInput;
-            default:
-                return "";
-        }
-    }
-
-    private void setActiveConsoleInputValue(String value) {
-        switch (activeConsoleInput) {
-            case CONSOLE_INPUT_LIVES:
-                consoleLivesInput = value;
-                break;
-            case CONSOLE_INPUT_WAVE:
-                consoleWaveInput = value;
-                break;
-            case CONSOLE_INPUT_GOLD:
-                consoleGoldInput = value;
-                break;
-            case CONSOLE_INPUT_AUGMENT:
-                consoleAugmentInput = value;
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void removeLastConsoleInputChar() {
-        String value = getActiveConsoleInputValue();
-        if (!value.isEmpty()) {
-            setActiveConsoleInputValue(value.substring(0, value.length() - 1));
-        }
-    }
-
-    private void applyActiveConsoleInput() {
-        switch (activeConsoleInput) {
-            case CONSOLE_INPUT_LIVES:
-                setLivesFromConsole();
-                break;
-            case CONSOLE_INPUT_WAVE:
-                jumpToWaveFromConsole();
-                break;
-            case CONSOLE_INPUT_GOLD:
-                setGoldFromConsole();
-                break;
-            case CONSOLE_INPUT_AUGMENT:
-                applyAugmentFromConsole();
-                break;
-            default:
-                break;
-        }
-    }
-
 
     private void loadElementDescriptions() {
         elementDescriptions = new HashMap<>();
@@ -2612,7 +2324,7 @@ public class GameScreen implements Screen {
             enemy.update(delta);
             if (enemy.hasReachedEnd()) {
                 if (!enemy.isAllied()) {
-                    if (!coreInvulnerable) {
+                    if (!consoleMenu.isCoreShieldEnabled()) {
                         economyManager.loseLife();
                         coreFlashTimer = 0.4f;
                         game.audio.playCoreHit();
@@ -2704,16 +2416,8 @@ public class GameScreen implements Screen {
         updatePillarMultipliers();
     }
 
-    private boolean hasClearedFirstFiftyWaves() {
-        if (waveManager == null) {
-            return false;
-        }
-        int waveCap = waveManager.getMaxWaves();
-        return waveManager.getCurrentWave() > waveCap
-                || (waveManager.getCurrentWave() >= waveCap && waveManager.areAllWavesComplete());
-    }
-
-    private boolean openEndgameForKillAllIfNeeded(float elapsedTime) {
+    @Override
+    public boolean openEndgameForKillAllIfNeeded(float elapsedTime) {
         if (waveManager == null || waveManager.getEnemiesRemaining() > 0) {
             return false;
         }
@@ -2754,11 +2458,7 @@ public class GameScreen implements Screen {
 
         @Override
         public boolean keyDown(int keycode) {
-            if (keycode == Input.Keys.GRAVE) {
-                toggleConsole();
-                return true;
-            }
-            if (handleConsoleKeyDown(keycode)) {
+            if (consoleMenu.handleKeyDown(keycode, GameScreen.this)) {
                 return true;
             }
             if (com.td.game.input.KeyBindings.handleShortcutKeys(keycode, game, mapType, GameScreen.this)) {
@@ -2809,30 +2509,15 @@ public class GameScreen implements Screen {
 
         @Override
         public boolean keyTyped(char character) {
-            return handleConsoleKeyTyped(character);
+            return consoleMenu.handleKeyTyped(character);
         }
 
         @Override
         public boolean touchDown(int screenX, int screenY, int pointer, int button) {
             int flippedY = Gdx.graphics.getHeight() - screenY;
-
-            if (consoleOpen && button == Input.Buttons.LEFT) {
-                int consoleInputTarget = getConsoleInputTargetAt(screenX, flippedY, Gdx.graphics.getWidth(),
-                        Gdx.graphics.getHeight());
-                if (consoleInputTarget != CONSOLE_INPUT_NONE) {
-                    activeConsoleInput = consoleInputTarget;
-                    return true;
-                }
-                activeConsoleInput = CONSOLE_INPUT_NONE;
-                int consoleButtonIndex = getConsoleButtonIndexAt(screenX, flippedY, Gdx.graphics.getWidth(),
-                        Gdx.graphics.getHeight());
-                if (consoleButtonIndex >= 0) {
-                    handleConsoleCommand(CONSOLE_BUTTON_COMMANDS[consoleButtonIndex]);
-                    return true;
-                }
-                if (isInConsoleArea(screenX, flippedY, Gdx.graphics.getWidth(), Gdx.graphics.getHeight())) {
-                    return true;
-                }
+            if (consoleMenu.handleTouchDown(screenX, flippedY, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), button,
+                    uiScale, GameScreen.this)) {
+                return true;
             }
 
             if (gameOver && button == Input.Buttons.LEFT) {
