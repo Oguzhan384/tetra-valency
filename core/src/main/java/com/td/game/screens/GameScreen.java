@@ -30,6 +30,7 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonValue;
 import com.td.game.TowerDefenseGame;
+import com.td.game.combat.IceAttack;
 import com.td.game.combat.LifeAttack;
 import com.td.game.combat.PoisonAttack;
 import com.td.game.combat.SteamAttack;
@@ -3261,7 +3262,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         Element element = proj.getElement();
         float damage = proj.getDamage();
 
-        if (element != Element.POISON && element != Element.STEAM) {
+        if (element != Element.POISON && element != Element.STEAM && element != Element.ICE) {
             target.takeDamage(damage, element);
         }
 
@@ -3286,7 +3287,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 target.applyKnockback(2.0f);
                 break;
             case ICE:
-                target.applyFreeze(2f);
+                IceAttack.applyOnHit(target, damage);
                 break;
             case POISON:
                 PoisonAttack.applyOnHit(target, damage);

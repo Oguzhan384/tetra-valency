@@ -4,6 +4,9 @@ import com.td.game.elements.Element;
 import com.td.game.entities.Enemy;
 
 public class IceAttack implements AttackAction {
+    public static final float FREEZE_DURATION = 2.0f;
+    public static final float ATTACK_SPEED_MULTIPLIER = 0.65f;
+
     private final float baseDamage;
     private final float range;
     private final float attackSpeed;
@@ -24,8 +27,22 @@ public class IceAttack implements AttackAction {
         Enemy target = context.getTarget();
         Element attackerElement = context.getSource() != null ? context.getSource().getCurrentElement() : null;
         target.takeDamage(baseDamage, attackerElement);
-        if (freezeDuration > 0f) {
-            target.applyFreeze(freezeDuration);
+        applyFreeze(target, freezeDuration);
+    }
+
+    public static void applyOnHit(Enemy target, float impactDamage) {
+        if (target == null || !target.isAlive()) {
+            return;
         }
+
+        target.takeDamage(impactDamage, Element.ICE);
+        applyFreeze(target, FREEZE_DURATION);
+    }
+
+    public static void applyFreeze(Enemy target, float duration) {
+        if (target == null || !target.isAlive() || duration <= 0f) {
+            return;
+        }
+        target.applyFreeze(duration);
     }
 }

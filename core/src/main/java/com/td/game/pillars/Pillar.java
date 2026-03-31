@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
 import com.td.game.combat.AttackContext;
 import com.td.game.combat.EarthAttack;
+import com.td.game.combat.IceAttack;
 import com.td.game.combat.LightAttack;
 import com.td.game.elements.Element;
 import com.td.game.entities.Enemy;
@@ -206,6 +207,9 @@ public class Pillar implements Disposable {
 
     private float getActualAttackCooldown() {
         float defaultCooldown = baseAttackCooldown / (type.getAttackSpeedMult() * bonusAttackSpeedMult);
+        if (currentElement == Element.ICE) {
+            defaultCooldown /= IceAttack.ATTACK_SPEED_MULTIPLIER;
+        }
         return defaultCooldown;
     }
 
