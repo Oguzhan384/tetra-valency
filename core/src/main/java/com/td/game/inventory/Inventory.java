@@ -119,6 +119,18 @@ public class Inventory implements Disposable {
         }
     }
 
+    public void selectSlot(int index) {
+        if (index < 0 || index >= unlockedSlots) {
+            selectedIndex = -1;
+            return;
+        }
+        if (slots[index] != null) {
+            selectedIndex = index;
+        } else {
+            selectedIndex = -1;
+        }
+    }
+
     public int getSlotAt(float screenX, float screenY) {
         float totalW = COLS * (slotSize + padding);
         float totalH = ROWS * (slotSize + padding);

@@ -473,6 +473,75 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         consoleMenu.toggle();
     }
 
+    public void buyOrbByIndex(int index) {
+        buyOrb(index);
+    }
+
+    public void selectInventorySlot(int slotIndex) {
+        if (inventory != null) {
+            inventory.selectSlot(slotIndex);
+        }
+    }
+
+    public void moveSelectedToMerge() {
+        if (inventory == null || mergeBoard == null || economyManager == null) {
+            return;
+        }
+        if (!inventory.hasSelection()) {
+            showMessage("Select an orb first.");
+            return;
+        }
+
+        boolean willCompleteMerge = mergeBoard.hasSlot1() ^ mergeBoard.hasSlot2();
+        if (willCompleteMerge && !economyManager.canAfford(MERGE_COST)) {
+            showErrorMessage("Need " + MERGE_COST + "G to merge!");
+            return;
+        }
+
+        Element selected = inventory.getSelectedOrb();
+        boolean placed = false;
+        if (!mergeBoard.hasSlot1()) {
+            placed = mergeBoard.placeOrb(mergeBoard.getSlot1X() + 1f, mergeBoard.getSlot1Y() + 1f, selected);
+        } else if (!mergeBoard.hasSlot2()) {
+            placed = mergeBoard.placeOrb(mergeBoard.getSlot2X() + 1f, mergeBoard.getSlot2Y() + 1f, selected);
+        }
+
+        if (placed) {
+            inventory.takeSelected();
+            if (willCompleteMerge && mergeBoard.hasResult()) {
+                economyManager.spend(MERGE_COST);
+            }
+        } else {
+            showMessage("Merge slots are full.");
+        }
+    }
+
+    public void moveSelectedToCharm() {
+        if (inventory == null || staffUI == null || player == null) {
+            return;
+        }
+        if (!inventory.hasSelection()) {
+            showMessage("Select an orb first.");
+            return;
+        }
+        Element selected = inventory.takeSelected();
+        Element old = staffUI.equipOrb(selected);
+        if (old != null && !inventory.addOrb(old)) {
+            showErrorMessage("Inventory Full!");
+            inventory.addOrb(selected);
+            staffUI.equipOrb(old);
+        } else {
+            int idx = staffUI.getEquippedElement().ordinal();
+            player.setStaffOrbModel(new ModelInstance(orbModels[idx]), staffUI.getEquippedElement());
+        }
+    }
+
+    public void startNextWaveHotkey() {
+        if (waveManager != null && !waveManager.isWaveInProgress()) {
+            tryStartNextWave();
+        }
+    }
+
     @Override
     public EconomyManager getEconomyManager() {
         return economyManager;
@@ -2510,11 +2579,6 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                     applyAugmentChoice(2);
                     return true;
                 }
-                return true;
-            }
-
-            if (keycode == Input.Keys.SPACE && !waveManager.isWaveInProgress()) {
-                tryStartNextWave();
                 return true;
             }
 
