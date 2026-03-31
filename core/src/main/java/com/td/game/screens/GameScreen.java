@@ -230,6 +230,7 @@ public class GameScreen implements Screen {
     private float globalRangeMult = 1f;
     private float globalAttackSpeedMult = 1f;
     private float staffAuraRadius = 8f;
+    private boolean lifeReviveBossesEnabled = false;
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
@@ -2280,6 +2281,9 @@ public class GameScreen implements Screen {
             case 7:
                 path = "ui/augment_icon_range.png";
                 break;
+            case 8:
+                path = "ui/augment_icon_necromance.png";
+                break;
         }
         com.badlogic.gdx.files.FileHandle file = resolveAsset(path);
         if (file.exists()) {
@@ -2290,7 +2294,7 @@ public class GameScreen implements Screen {
 
     private void rollAugments() {
         Array<Integer> available = new Array<>();
-        for (int i = 0; i <= 7; i++) {
+        for (int i = 0; i <= 8; i++) {
             boolean has = false;
             for (int j = 0; j < acquiredAugments.size; j++) {
                 if (acquiredAugments.get(j).id == i) {
@@ -2310,8 +2314,8 @@ public class GameScreen implements Screen {
             augmentOptionA = available.get(0);
             augmentOptionB = available.get(0);
         } else {
-            augmentOptionA = MathUtils.random(0, 7);
-            augmentOptionB = MathUtils.random(0, 7);
+            augmentOptionA = MathUtils.random(0, 8);
+            augmentOptionB = MathUtils.random(0, 8);
         }
     }
 
@@ -2397,6 +2401,7 @@ public class GameScreen implements Screen {
         data.globalRangeMult = this.globalRangeMult;
         data.globalAttackSpeedMult = this.globalAttackSpeedMult;
         data.staffAuraRadius = this.staffAuraRadius;
+        data.lifeReviveBossesEnabled = this.lifeReviveBossesEnabled;
 
         data.acquiredAugments.clear();
         for (AcquiredAugment aug : this.acquiredAugments) {
@@ -2409,10 +2414,14 @@ public class GameScreen implements Screen {
         this.globalRangeMult = data.globalRangeMult;
         this.globalAttackSpeedMult = data.globalAttackSpeedMult;
         this.staffAuraRadius = data.staffAuraRadius;
+        this.lifeReviveBossesEnabled = data.lifeReviveBossesEnabled;
 
         this.acquiredAugments.clear();
         for (int augId : data.acquiredAugments) {
             this.acquiredAugments.add(new AcquiredAugment(augId));
+            if (augId == 8) {
+                this.lifeReviveBossesEnabled = true;
+            }
         }
     }
 
@@ -2466,6 +2475,10 @@ public class GameScreen implements Screen {
                 staffAuraRadius += 2.5f;
                 showMessage("Augment: Expanding Aura");
                 break;
+            case 8:
+                lifeReviveBossesEnabled = true;
+                showMessage("Augment: Necromancy");
+                break;
             default:
                 break;
         }
@@ -2489,6 +2502,8 @@ public class GameScreen implements Screen {
                 return "Stipend";
             case 7:
                 return "Expanding Aura";
+            case 8:
+                return "Necromancy";
             default:
                 return "Unknown";
         }
@@ -2512,6 +2527,8 @@ public class GameScreen implements Screen {
                 return "Instant +100 gold";
             case 7:
                 return "Alchemist aura radius +30%";
+            case 8:
+                return "Life can revive bosses";
             default:
                 return "-";
         }
@@ -2746,7 +2763,9 @@ public class GameScreen implements Screen {
                     
                     
                     if (LifeAttack.canRevive(pillars, enemy)) {
-                        reviveAsAlly(enemy);
+                        if (lifeReviveBossesEnabled || !(enemy instanceof com.td.game.entities.DemonEnemy)) {
+                            reviveAsAlly(enemy);
+                        }
                     }
                 }
             }
