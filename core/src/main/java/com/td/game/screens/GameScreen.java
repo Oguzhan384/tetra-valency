@@ -821,17 +821,19 @@ public class GameScreen implements Screen {
         if (economyManager != null) {
             livesLabel = "HEALTH (" + economyManager.getLives() + ")";
         }
+        String livesPlaceholder = economyManager != null ? String.valueOf(economyManager.getLives()) : "";
         drawConsoleFieldLabel(uiBatch, livesLabel, layout.livesLabelY, layout.livesInputBox);
         drawConsoleInputField(uiBatch, layout.livesInputBox, consoleLivesInput, activeConsoleInput == CONSOLE_INPUT_LIVES,
-                "");
+                livesPlaceholder);
         drawConsoleWaveInput(uiBatch, layout);
         String goldLabel = "GOLD";
         if (economyManager != null) {
             goldLabel = "GOLD (" + economyManager.getGold() + ")";
         }
+        String goldPlaceholder = economyManager != null ? String.valueOf(economyManager.getGold()) : "";
         drawConsoleFieldLabel(uiBatch, goldLabel, layout.goldLabelY, layout.goldInputBox);
         drawConsoleInputField(uiBatch, layout.goldInputBox, consoleGoldInput, activeConsoleInput == CONSOLE_INPUT_GOLD,
-                "");
+                goldPlaceholder);
         drawConsoleFieldLabel(uiBatch, "AUGMENT ID", layout.augmentLabelY, layout.augmentInputBox);
         drawConsoleInputField(uiBatch, layout.augmentInputBox, consoleAugmentInput,
                 activeConsoleInput == CONSOLE_INPUT_AUGMENT, "");
@@ -860,7 +862,7 @@ public class GameScreen implements Screen {
         float titleBlockH = 20f * uiScale;
         float titleToFirstLabel = 28f * uiScale;
         float inputBoxH = 22f * uiScale;
-        float labelToInputGap = 7f * uiScale;
+        float labelToInputGap = 9f * uiScale;
         float sectionGap = 10f * uiScale;
         float buttonGap = 8f * uiScale;
         float buttonH = 30f * uiScale;
@@ -868,9 +870,9 @@ public class GameScreen implements Screen {
                 + (labelToInputGap + inputBoxH)
                 + (sectionGap + labelToInputGap + inputBoxH)
                 + (sectionGap + labelToInputGap + inputBoxH)
-                + (sectionGap + labelToInputGap + inputBoxH)
                 + (buttonCount * buttonH)
-                + ((buttonCount - 1) * buttonGap);
+                + ((buttonCount - 1) * buttonGap)
+                + (labelToInputGap + titleBlockH);
         panelH = Math.min(panelH, screenHeight - topMargin - bottomMargin);
         float panelX = sideMargin;
         float panelY = screenHeight - panelH - topMargin;
@@ -895,15 +897,22 @@ public class GameScreen implements Screen {
         layout.goldInputBox.set(contentX, goldInputY, contentW, inputBoxH);
         layout.goldBox.set(contentX, goldInputY, contentW, inputBoxH);
 
-        layout.augmentLabelY = layout.goldInputBox.y - sectionGap;
-        float augmentInputY = layout.augmentLabelY - labelToInputGap - inputBoxH;
-        layout.augmentInputBox.set(contentX, augmentInputY, contentW, inputBoxH);
-        layout.augmentBox.set(contentX, augmentInputY, contentW, inputBoxH);
-
-        float buttonY = layout.augmentInputBox.y - buttonH;
+        float buttonY = layout.goldInputBox.y - buttonH;
         for (Rectangle button : layout.buttons) {
             button.set(contentX, buttonY, contentW, buttonH);
             buttonY -= buttonH + buttonGap;
+        }
+
+        if (layout.buttons.length > 0) {
+            Rectangle addAugmentButton = layout.buttons[layout.buttons.length - 1];
+            float gap = 6f * uiScale;
+            float augmentInputW = Math.max(70f * uiScale, contentW * 0.36f);
+            float augmentButtonW = Math.max(90f * uiScale, contentW - augmentInputW - gap);
+            addAugmentButton.width = augmentButtonW;
+            layout.augmentInputBox.set(addAugmentButton.x + addAugmentButton.width + gap, addAugmentButton.y,
+                    augmentInputW, addAugmentButton.height);
+            layout.augmentBox.set(layout.augmentInputBox);
+            layout.augmentLabelY = layout.augmentInputBox.y + layout.augmentInputBox.height + labelToInputGap;
         }
 
         return layout;
@@ -932,7 +941,8 @@ public class GameScreen implements Screen {
         }
         drawConsoleFieldLabel(batch, label, layout.waveLabelY, layout.waveBox);
 
-        drawConsoleInputField(batch, layout.waveBox, consoleWaveInput, activeConsoleInput == CONSOLE_INPUT_WAVE, "");
+        String placeholder = waveManager != null ? String.valueOf(waveManager.getCurrentWave()) : "";
+        drawConsoleInputField(batch, layout.waveBox, consoleWaveInput, activeConsoleInput == CONSOLE_INPUT_WAVE, placeholder);
     }
 
     private void drawConsoleInputField(SpriteBatch batch, Rectangle box, String value, boolean active, String placeholder) {
