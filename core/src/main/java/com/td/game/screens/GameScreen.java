@@ -3781,6 +3781,7 @@ public class GameScreen implements Screen {
                 target.takeDamage(damage, Element.LIFE);
                 ally.triggerContactDamageCooldown(LIFE_ALLY_COLLISION_COOLDOWN);
                 spawnEffect(target.getPosition(), Element.LIFE, 0.4f, 1.0f);
+                ally.takeDamage(ally.getMaxHealth() + 1f, Element.LIFE);
             }
         }
     }
