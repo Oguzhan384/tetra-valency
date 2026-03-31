@@ -770,7 +770,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
         uiBatch.begin();
         for (com.td.game.entities.Effect effect : activeEffects) {
-            effect.render(uiBatch, camera);
+            effect.render(uiBatch, camera, mapAreaWidth, screenHeight);
         }
         uiBatch.end();
 
@@ -2466,6 +2466,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             if (goldGenerated > 0) {
                 economyManager.earn(goldGenerated);
                 game.audio.playGoldGain();
+                spawnGoldGainEffect(pillar.getPosition());
             }
         }
 
@@ -3373,6 +3374,14 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         if (tex != null) {
             activeEffects.add(new com.td.game.entities.Effect(pos, tex, lifetime, scale * uiScale));
         }
+    }
+
+    private void spawnGoldGainEffect(Vector3 pos) {
+        if (hudGoldIconTexture == null) {
+            return;
+        }
+        Vector3 effectPos = pos.cpy().add(0f, 3.2f, 0f);
+        activeEffects.add(new com.td.game.entities.Effect(effectPos, hudGoldIconTexture, 1.2f, 0.42f * uiScale, 1.5f));
     }
 
     private void reviveAsAlly(com.td.game.entities.Enemy deadEnemy) {
