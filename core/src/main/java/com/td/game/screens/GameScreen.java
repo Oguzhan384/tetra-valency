@@ -101,6 +101,10 @@ public class GameScreen implements Screen {
     private Model golemModel;
     private Model batModel;
     private Model pinkBlobModel;
+    private Model demonLifeModel;
+    private Model golemLifeModel;
+    private Model batLifeModel;
+    private Model pinkBlobLifeModel;
     private float coreBaseX;
     private float coreBaseY;
     private float coreBaseZ;
@@ -209,6 +213,9 @@ public class GameScreen implements Screen {
     private float pillarPanelW;
     private float pillarPanelH;
     private static final float PILLAR_PANEL_BTN_H = 30f;
+    private static final float LIFE_ALLY_COLLISION_RADIUS = Constants.TILE_SIZE * 0.35f;
+    private static final float LIFE_ALLY_COLLISION_DAMAGE_FACTOR = 0.20f;
+    private static final float LIFE_ALLY_COLLISION_COOLDOWN = 0.6f;
 
     private float moveDelay = 0.2f;
     private float moveTimer = 0;
@@ -224,6 +231,7 @@ public class GameScreen implements Screen {
     private float globalRangeMult = 1f;
     private float globalAttackSpeedMult = 1f;
     private float staffAuraRadius = 8f;
+    private boolean lifeReviveBossesEnabled = false;
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
@@ -480,6 +488,10 @@ public class GameScreen implements Screen {
         golemModel = modelFactory.loadGolemModel();
         batModel = modelFactory.loadBatModel();
         pinkBlobModel = modelFactory.loadPinkBlobModel();
+        demonLifeModel = modelFactory.loadDemonLifeModel();
+        golemLifeModel = modelFactory.loadGolemLifeModel();
+        batLifeModel = modelFactory.loadBatLifeModel();
+        pinkBlobLifeModel = modelFactory.loadPinkBlobLifeModel();
     }
 
     public void showMessage(String msg) {
@@ -2271,6 +2283,9 @@ public class GameScreen implements Screen {
             case 7:
                 path = "ui/augment_icon_range.png";
                 break;
+            case 8:
+                path = "ui/augment_icon_necromance.png";
+                break;
         }
         com.badlogic.gdx.files.FileHandle file = resolveAsset(path);
         if (file.exists()) {
@@ -2281,7 +2296,7 @@ public class GameScreen implements Screen {
 
     private void rollAugments() {
         Array<Integer> available = new Array<>();
-        for (int i = 0; i <= 7; i++) {
+        for (int i = 0; i <= 8; i++) {
             boolean has = false;
             for (int j = 0; j < acquiredAugments.size; j++) {
                 if (acquiredAugments.get(j).id == i) {
@@ -2301,8 +2316,8 @@ public class GameScreen implements Screen {
             augmentOptionA = available.get(0);
             augmentOptionB = available.get(0);
         } else {
-            augmentOptionA = MathUtils.random(0, 7);
-            augmentOptionB = MathUtils.random(0, 7);
+            augmentOptionA = MathUtils.random(0, 8);
+            augmentOptionB = MathUtils.random(0, 8);
         }
     }
 
@@ -2388,6 +2403,7 @@ public class GameScreen implements Screen {
         data.globalRangeMult = this.globalRangeMult;
         data.globalAttackSpeedMult = this.globalAttackSpeedMult;
         data.staffAuraRadius = this.staffAuraRadius;
+        data.lifeReviveBossesEnabled = this.lifeReviveBossesEnabled;
 
         data.acquiredAugments.clear();
         for (AcquiredAugment aug : this.acquiredAugments) {
@@ -2400,10 +2416,14 @@ public class GameScreen implements Screen {
         this.globalRangeMult = data.globalRangeMult;
         this.globalAttackSpeedMult = data.globalAttackSpeedMult;
         this.staffAuraRadius = data.staffAuraRadius;
+        this.lifeReviveBossesEnabled = data.lifeReviveBossesEnabled;
 
         this.acquiredAugments.clear();
         for (int augId : data.acquiredAugments) {
             this.acquiredAugments.add(new AcquiredAugment(augId));
+            if (augId == 8) {
+                this.lifeReviveBossesEnabled = true;
+            }
         }
     }
 
@@ -2457,6 +2477,10 @@ public class GameScreen implements Screen {
                 staffAuraRadius += 2.5f;
                 showMessage("Augment: Expanding Aura");
                 break;
+            case 8:
+                lifeReviveBossesEnabled = true;
+                showMessage("Augment: Necromancy");
+                break;
             default:
                 break;
         }
@@ -2480,6 +2504,8 @@ public class GameScreen implements Screen {
                 return "Stipend";
             case 7:
                 return "Expanding Aura";
+            case 8:
+                return "Necromancy";
             default:
                 return "Unknown";
         }
@@ -2503,6 +2529,8 @@ public class GameScreen implements Screen {
                 return "Instant +100 gold";
             case 7:
                 return "Alchemist aura radius +30%";
+            case 8:
+                return "Life can revive bosses";
             default:
                 return "-";
         }
@@ -2737,11 +2765,15 @@ public class GameScreen implements Screen {
                     
                     
                     if (LifeAttack.canRevive(pillars, enemy)) {
-                        reviveAsAlly(enemy);
+                        if (lifeReviveBossesEnabled || !(enemy instanceof com.td.game.entities.DemonEnemy)) {
+                            reviveAsAlly(enemy);
+                        }
                     }
                 }
             }
         }
+
+        handleLifeAllyCollisions();
         waveManager.removeDeadEnemies();
 
         
@@ -3696,16 +3728,16 @@ public class GameScreen implements Screen {
         com.td.game.entities.Enemy ally;
         if (deadEnemy instanceof com.td.game.entities.DemonEnemy) {
             ally = new com.td.game.entities.DemonEnemy(deadEnemy.getMaxHealth() * 0.5f, 1.0f, 0);
-            ally.setModel(demonModel);
+            ally.setModel(demonLifeModel != null ? demonLifeModel : demonModel);
         } else if (deadEnemy instanceof com.td.game.entities.GolemEnemy) {
             ally = new com.td.game.entities.GolemEnemy(deadEnemy.getMaxHealth() * 0.5f, 1.0f, 0);
-            ally.setModel(golemModel);
+            ally.setModel(golemLifeModel != null ? golemLifeModel : golemModel);
         } else if (deadEnemy instanceof com.td.game.entities.BatEnemy) {
             ally = new com.td.game.entities.BatEnemy(deadEnemy.getMaxHealth() * 0.5f, 1.0f, 0);
-            ally.setModel(batModel);
+            ally.setModel(batLifeModel != null ? batLifeModel : batModel);
         } else {
             ally = new com.td.game.entities.PinkBlobEnemy(deadEnemy.getMaxHealth() * 0.5f, 1.0f, 0);
-            ally.setModel(pinkBlobModel);
+            ally.setModel(pinkBlobLifeModel != null ? pinkBlobLifeModel : pinkBlobModel);
         }
 
         
@@ -3731,8 +3763,47 @@ public class GameScreen implements Screen {
         }
 
         for (com.badlogic.gdx.graphics.g3d.Material mat : ally.getModelInstance().materials) {
-            mat.set(TextureAttribute.createDiffuse(lifeRecallTexture));
+            if (!mat.has(TextureAttribute.Diffuse)) {
+                mat.set(TextureAttribute.createDiffuse(lifeRecallTexture));
+            }
             mat.set(ColorAttribute.createEmissive(0.06f, 0.30f, 0.10f, 1f));
+        }
+    }
+
+    private void handleLifeAllyCollisions() {
+        com.badlogic.gdx.utils.Array<com.td.game.entities.Enemy> enemies = waveManager.getActiveEnemies();
+        if (enemies == null || enemies.size == 0) {
+            return;
+        }
+
+        for (int i = 0; i < enemies.size; i++) {
+            com.td.game.entities.Enemy ally = enemies.get(i);
+            if (ally == null || !ally.isAlive() || !ally.isAllied()) {
+                continue;
+            }
+            if (!ally.canDealContactDamage()) {
+                continue;
+            }
+
+            com.td.game.entities.Enemy target = null;
+            for (int j = 0; j < enemies.size; j++) {
+                com.td.game.entities.Enemy enemy = enemies.get(j);
+                if (enemy == null || enemy == ally || !enemy.isAlive() || enemy.isAllied()) {
+                    continue;
+                }
+                if (ally.getPosition().dst(enemy.getPosition()) <= LIFE_ALLY_COLLISION_RADIUS) {
+                    target = enemy;
+                    break;
+                }
+            }
+
+            if (target != null) {
+                float damage = Math.max(1f, ally.getMaxHealth() * LIFE_ALLY_COLLISION_DAMAGE_FACTOR);
+                target.takeDamage(damage, Element.LIFE);
+                ally.triggerContactDamageCooldown(LIFE_ALLY_COLLISION_COOLDOWN);
+                spawnEffect(target.getPosition(), Element.LIFE, 0.4f, 1.0f);
+                ally.takeDamage(ally.getMaxHealth() + 1f, Element.LIFE);
+            }
         }
     }
 
