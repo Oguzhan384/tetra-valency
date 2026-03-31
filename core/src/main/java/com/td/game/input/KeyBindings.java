@@ -11,12 +11,7 @@ public class KeyBindings {
 
     public static boolean handleShortcutKeys(int keycode, TowerDefenseGame game, GameMap.MapType mapType,
             Screen currentScreen) {
-        if (keycode == Input.Keys.GRAVE) {
-            if (currentScreen instanceof com.td.game.screens.GameScreen) {
-                ((com.td.game.screens.GameScreen) currentScreen).toggleConsole();
-            }
-            return true;
-        } else if (keycode == Input.Keys.NUM_1) {
+        if (keycode == Input.Keys.NUM_1) {
             transitionToEndgame(game, mapType, currentScreen, EndgameScreen.EndState.WIN);
             return true;
         }

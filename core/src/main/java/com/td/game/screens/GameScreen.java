@@ -101,6 +101,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private Model golemModel;
     private Model batModel;
     private Model pinkBlobModel;
+    private Model demonLifeModel;
+    private Model golemLifeModel;
+    private Model batLifeModel;
+    private Model pinkBlobLifeModel;
     private float coreBaseX;
     private float coreBaseY;
     private float coreBaseZ;
@@ -185,6 +189,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private float pillarPanelW;
     private float pillarPanelH;
     private static final float PILLAR_PANEL_BTN_H = 30f;
+    private static final float LIFE_ALLY_COLLISION_RADIUS = Constants.TILE_SIZE * 0.35f;
+    private static final float LIFE_ALLY_COLLISION_DAMAGE_FACTOR = 0.20f;
+    private static final float LIFE_ALLY_COLLISION_COOLDOWN = 0.6f;
 
     private float moveDelay = 0.2f;
     private float moveTimer = 0;
@@ -204,6 +211,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
+    private static final int MAX_AUGMENT_ID = 8;
 
     public GameScreen(TowerDefenseGame game) {
         this(game, GameMap.MapType.ELEMENTAL_CASTLE, false);
@@ -450,11 +458,19 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         golemModel = modelFactory.loadGolemModel();
         batModel = modelFactory.loadBatModel();
         pinkBlobModel = modelFactory.loadPinkBlobModel();
+        demonLifeModel = modelFactory.loadDemonLifeModel();
+        golemLifeModel = modelFactory.loadGolemLifeModel();
+        batLifeModel = modelFactory.loadBatLifeModel();
+        pinkBlobLifeModel = modelFactory.loadPinkBlobLifeModel();
     }
 
     public void showMessage(String msg) {
         this.uiMessage = msg;
         this.uiMessageTimer = 2.0f;
+    }
+
+    public void toggleConsole() {
+        consoleMenu.toggle();
     }
 
     @Override
@@ -1389,6 +1405,17 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             uiBatch.draw(activeInfoTexture, infoPanelX, infoPanelY, infoPanelW, infoPanelH);
             uiBatch.end();
         }
+    }
+
+    private Rectangle getConsoleToggleRect(int screenHeight) {
+        float lifeIconSize = 48f * uiScale;
+        float topY = screenHeight - 22f * uiScale;
+        float iconX = 16f * uiScale;
+        float iconY = topY - lifeIconSize + 4f * uiScale;
+        float toggleY = iconY - (22f * uiScale);
+        float toggleW = 140f * uiScale;
+        float toggleH = 20f * uiScale;
+        return new Rectangle(iconX, toggleY, toggleW, toggleH);
     }
 
     private void renderPillarStats(int screenWidth, int screenHeight) {
@@ -2351,6 +2378,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 }
             }
         }
+
+        handleLifeAllyCollisions();
         waveManager.removeDeadEnemies();
 
         
@@ -2515,6 +2544,13 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         @Override
         public boolean touchDown(int screenX, int screenY, int pointer, int button) {
             int flippedY = Gdx.graphics.getHeight() - screenY;
+            if (button == Input.Buttons.LEFT) {
+                Rectangle toggleRect = getConsoleToggleRect(Gdx.graphics.getHeight());
+                if (isInRect(screenX, flippedY, toggleRect.x, toggleRect.y, toggleRect.width, toggleRect.height)) {
+                    consoleMenu.toggle();
+                    return true;
+                }
+            }
             if (consoleMenu.handleTouchDown(screenX, flippedY, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), button,
                     uiScale, GameScreen.this)) {
                 return true;
@@ -3278,16 +3314,16 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         com.td.game.entities.Enemy ally;
         if (deadEnemy instanceof com.td.game.entities.DemonEnemy) {
             ally = new com.td.game.entities.DemonEnemy(deadEnemy.getMaxHealth() * 0.5f, 1.0f, 0);
-            ally.setModel(demonModel);
+            ally.setModel(demonLifeModel != null ? demonLifeModel : demonModel);
         } else if (deadEnemy instanceof com.td.game.entities.GolemEnemy) {
             ally = new com.td.game.entities.GolemEnemy(deadEnemy.getMaxHealth() * 0.5f, 1.0f, 0);
-            ally.setModel(golemModel);
+            ally.setModel(golemLifeModel != null ? golemLifeModel : golemModel);
         } else if (deadEnemy instanceof com.td.game.entities.BatEnemy) {
             ally = new com.td.game.entities.BatEnemy(deadEnemy.getMaxHealth() * 0.5f, 1.0f, 0);
-            ally.setModel(batModel);
+            ally.setModel(batLifeModel != null ? batLifeModel : batModel);
         } else {
             ally = new com.td.game.entities.PinkBlobEnemy(deadEnemy.getMaxHealth() * 0.5f, 1.0f, 0);
-            ally.setModel(pinkBlobModel);
+            ally.setModel(pinkBlobLifeModel != null ? pinkBlobLifeModel : pinkBlobModel);
         }
 
         
@@ -3313,8 +3349,47 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         }
 
         for (com.badlogic.gdx.graphics.g3d.Material mat : ally.getModelInstance().materials) {
-            mat.set(TextureAttribute.createDiffuse(lifeRecallTexture));
+            if (!mat.has(TextureAttribute.Diffuse)) {
+                mat.set(TextureAttribute.createDiffuse(lifeRecallTexture));
+            }
             mat.set(ColorAttribute.createEmissive(0.06f, 0.30f, 0.10f, 1f));
+        }
+    }
+
+    private void handleLifeAllyCollisions() {
+        com.badlogic.gdx.utils.Array<com.td.game.entities.Enemy> enemies = waveManager.getActiveEnemies();
+        if (enemies == null || enemies.size == 0) {
+            return;
+        }
+
+        for (int i = 0; i < enemies.size; i++) {
+            com.td.game.entities.Enemy ally = enemies.get(i);
+            if (ally == null || !ally.isAlive() || !ally.isAllied()) {
+                continue;
+            }
+            if (!ally.canDealContactDamage()) {
+                continue;
+            }
+
+            com.td.game.entities.Enemy target = null;
+            for (int j = 0; j < enemies.size; j++) {
+                com.td.game.entities.Enemy enemy = enemies.get(j);
+                if (enemy == null || enemy == ally || !enemy.isAlive() || enemy.isAllied()) {
+                    continue;
+                }
+                if (ally.getPosition().dst(enemy.getPosition()) <= LIFE_ALLY_COLLISION_RADIUS) {
+                    target = enemy;
+                    break;
+                }
+            }
+
+            if (target != null) {
+                float damage = Math.max(1f, ally.getMaxHealth() * LIFE_ALLY_COLLISION_DAMAGE_FACTOR);
+                target.takeDamage(damage, Element.LIFE);
+                ally.triggerContactDamageCooldown(LIFE_ALLY_COLLISION_COOLDOWN);
+                spawnEffect(target.getPosition(), Element.LIFE, 0.4f, 1.0f);
+                ally.takeDamage(ally.getMaxHealth() + 1f, Element.LIFE);
+            }
         }
     }
 

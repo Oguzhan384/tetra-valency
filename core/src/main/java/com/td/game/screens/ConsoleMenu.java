@@ -85,10 +85,6 @@ public class ConsoleMenu {
     }
 
     public boolean handleKeyDown(int keycode, Context ctx) {
-        if (keycode == Input.Keys.GRAVE) {
-            toggle();
-            return true;
-        }
         if (!open) {
             return false;
         }
