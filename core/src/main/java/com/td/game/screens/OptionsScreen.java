@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.td.game.TowerDefenseGame;
 import com.td.game.map.GameMap;
@@ -42,12 +43,18 @@ public class OptionsScreen implements Screen {
     private Rectangle musicKnob;
     private Rectangle soundKnob;
     private Rectangle displayModePill;
+    private Rectangle editBindingsBtn;
+    private Rectangle bindingsPanel;
+    private Rectangle bindingsViewport;
     private Rectangle controlsHeader;
     private Rectangle[] controlKeyPills;
     private KeyBindings.Action[] controlActions;
     private KeyBindings.Action waitingFor;
     private String noticeMessage = "";
     private float noticeTimer = 0f;
+    private boolean bindingsOpen = false;
+    private float bindingsScroll = 0f;
+    private float bindingsContentHeight = 0f;
 
     private float musicVolume;
     private float soundVolume;
@@ -108,6 +115,10 @@ public class OptionsScreen implements Screen {
         musicKnob = new Rectangle(musicTrack.x, musicTrack.y - 10f, 26f, 26f);
         soundKnob = new Rectangle(soundTrack.x, soundTrack.y - 10f, 26f, 26f);
         displayModePill = new Rectangle(rootPanel.x + rootPanel.width * 0.5f - 180f, rootPanel.y + 92f, 360f, 52f);
+        editBindingsBtn = new Rectangle(rootPanel.x + rootPanel.width * 0.5f - 140f, soundTrack.y - 62f, 280f, 44f);
+        bindingsPanel = new Rectangle(rootPanel.x + 50f, rootPanel.y + 60f, rootPanel.width - 100f, rootPanel.height - 220f);
+        bindingsViewport = new Rectangle(bindingsPanel.x + 20f, bindingsPanel.y + 20f,
+                bindingsPanel.width - 40f, bindingsPanel.height - 40f);
 
         controlActions = new KeyBindings.Action[] {
                 KeyBindings.Action.MOVE_UP,
@@ -133,16 +144,19 @@ public class OptionsScreen implements Screen {
         for (int i = 0; i < controlActions.length; i++) {
             controlKeyPills[i] = new Rectangle();
         }
-        controlsHeader = new Rectangle(rootPanel.x + 60f, rootPanel.y + rootPanel.height * 0.52f, rootPanel.width - 120f, 36f);
-        float rowY = rootPanel.y + rootPanel.height * 0.48f;
-        float rowH = 34f;
-        float gap = 10f;
-        float labelW = rootPanel.width * 0.5f;
-        float keyW = rootPanel.width * 0.32f;
+        controlsHeader = new Rectangle(bindingsPanel.x + 20f, bindingsPanel.y + bindingsPanel.height - 40f,
+                bindingsPanel.width - 40f, 32f);
+        float rowY = controlsHeader.y - 20f;
+        float rowH = 32f;
+        float gap = 8f;
+        float keyW = bindingsViewport.width * 0.34f;
         for (int i = 0; i < controlKeyPills.length; i++) {
             float y = rowY - i * (rowH + gap);
-            controlKeyPills[i].set(rootPanel.x + rootPanel.width - keyW - 60f, y, keyW, rowH);
+            controlKeyPills[i].set(bindingsViewport.x + bindingsViewport.width - keyW, y, keyW, rowH);
         }
+        bindingsContentHeight = (controlActions.length * (rowH + gap)) + 40f;
+        float maxScroll = Math.max(0f, bindingsContentHeight - bindingsViewport.height);
+        bindingsScroll = MathUtils.clamp(bindingsScroll, 0f, maxScroll);
     }
 
     @Override
@@ -171,6 +185,7 @@ public class OptionsScreen implements Screen {
         drawPill(musicPercentPill, new Color(0.56f, 0.43f, 0.33f, 1f));
         drawPill(soundPercentPill, new Color(0.56f, 0.43f, 0.33f, 1f));
         drawPill(displayModePill, new Color(0.56f, 0.43f, 0.33f, 1f));
+        drawPill(editBindingsBtn, new Color(0.56f, 0.43f, 0.33f, 1f));
         drawRect(backBtn, backBtn.height * 0.5f, new Color(0.56f, 0.43f, 0.33f, 1f));
 
         shapes.setColor(new Color(0.82f, 0.82f, 0.82f, 1f));
@@ -196,21 +211,37 @@ public class OptionsScreen implements Screen {
                 soundPercentPill.y + soundPercentPill.height * 0.67f, soundPercentPill.width);
         drawCentered("Display: " + (fullscreenMode ? "Fullscreen" : "Windowed"), displayModePill.x,
                 displayModePill.y + displayModePill.height * 0.67f, displayModePill.width);
+        drawCentered("Edit Keybindings", editBindingsBtn.x, editBindingsBtn.y + editBindingsBtn.height * 0.67f,
+                editBindingsBtn.width);
         drawCentered("Back", backBtn.x, backBtn.y + backBtn.height * 0.67f, backBtn.width);
+        if (bindingsOpen) {
+            shapes.begin(ShapeRenderer.ShapeType.Filled);
+            drawRect(bindingsPanel, 24f, new Color(0.86f, 0.64f, 0.22f, 0.98f));
+            shapes.end();
 
-        drawCentered("Controls", controlsHeader.x, controlsHeader.y + controlsHeader.height * 0.7f, controlsHeader.width);
-        for (int i = 0; i < controlActions.length; i++) {
-            KeyBindings.Action action = controlActions[i];
-            Rectangle pill = controlKeyPills[i];
-            String label = getActionLabel(action);
-            glyph.setText(font, label);
-            font.draw(batch, label, rootPanel.x + 60f, pill.y + pill.height * 0.68f);
+            batch.begin();
+            drawCentered("Keybindings", bindingsPanel.x, bindingsPanel.y + bindingsPanel.height - 18f, bindingsPanel.width);
+            batch.end();
 
-            String keyName = Input.Keys.toString(KeyBindings.getKey(action));
-            if (waitingFor == action) {
-                keyName = "...";
+            for (int i = 0; i < controlActions.length; i++) {
+                KeyBindings.Action action = controlActions[i];
+                Rectangle pill = controlKeyPills[i];
+                float y = pill.y - bindingsScroll;
+                if (y + pill.height < bindingsViewport.y || y > bindingsViewport.y + bindingsViewport.height) {
+                    continue;
+                }
+                String label = getActionLabel(action);
+                batch.begin();
+                glyph.setText(font, label);
+                font.draw(batch, label, bindingsViewport.x, y + pill.height * 0.68f);
+
+                String keyName = Input.Keys.toString(KeyBindings.getKey(action));
+                if (waitingFor == action) {
+                    keyName = "...";
+                }
+                drawCentered(keyName, pill.x, y + pill.height * 0.68f, pill.width);
+                batch.end();
             }
-            drawCentered(keyName, pill.x, pill.y + pill.height * 0.68f, pill.width);
         }
 
         if (noticeTimer > 0f) {
@@ -449,15 +480,35 @@ public class OptionsScreen implements Screen {
                 toggleDisplayMode();
                 return true;
             }
+            if (editBindingsBtn.contains(screenX, y)) {
+                game.audio.playClick();
+                bindingsOpen = !bindingsOpen;
+                waitingFor = null;
+                return true;
+            }
 
-            for (int i = 0; i < controlKeyPills.length; i++) {
-                if (controlKeyPills[i].contains(screenX, y)) {
-                    waitingFor = controlActions[i];
-                    showNotice("Press a key...");
-                    return true;
+            if (bindingsOpen) {
+                for (int i = 0; i < controlKeyPills.length; i++) {
+                    Rectangle pill = controlKeyPills[i];
+                    float pillY = pill.y - bindingsScroll;
+                    if (screenX >= pill.x && screenX <= pill.x + pill.width && y >= pillY && y <= pillY + pill.height) {
+                        waitingFor = controlActions[i];
+                        showNotice("Press a key...");
+                        return true;
+                    }
                 }
             }
             return false;
+        }
+
+        @Override
+        public boolean scrolled(float amountX, float amountY) {
+            if (!bindingsOpen) {
+                return false;
+            }
+            float maxScroll = Math.max(0f, bindingsContentHeight - bindingsViewport.height);
+            bindingsScroll = MathUtils.clamp(bindingsScroll + amountY * 20f, 0f, maxScroll);
+            return true;
         }
 
         @Override
