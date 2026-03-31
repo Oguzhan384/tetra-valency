@@ -27,7 +27,8 @@ public class KeyBindings {
         SLOT_6,
         MOVE_TO_MERGE,
         MOVE_TO_CHARM,
-        START_WAVE
+        START_WAVE,
+        SPEED_TOGGLE
     }
 
     public static int getDefaultKey(Action action) {
@@ -50,6 +51,7 @@ public class KeyBindings {
             case MOVE_TO_MERGE: return Input.Keys.M;
             case MOVE_TO_CHARM: return Input.Keys.C;
             case START_WAVE: return Input.Keys.SPACE;
+            case SPEED_TOGGLE: return Input.Keys.V;
             default: return Input.Keys.UNKNOWN;
         }
     }
@@ -140,6 +142,10 @@ public class KeyBindings {
             }
             if (keycode == getKey(Action.START_WAVE)) {
                 gs.startNextWaveHotkey();
+                return true;
+            }
+            if (keycode == getKey(Action.SPEED_TOGGLE)) {
+                gs.toggleSpeed();
                 return true;
             }
         }

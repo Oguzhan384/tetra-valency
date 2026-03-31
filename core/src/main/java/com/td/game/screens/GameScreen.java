@@ -542,6 +542,12 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         }
     }
 
+    public void toggleSpeed() {
+        speedIndex = (speedIndex + 1) % SPEED_MULTIPLIERS.length;
+        game.audio.playSpeedToggle();
+        showMessage(String.format("Speed: %dX", (int) SPEED_MULTIPLIERS[speedIndex]));
+    }
+
     @Override
     public EconomyManager getEconomyManager() {
         return economyManager;

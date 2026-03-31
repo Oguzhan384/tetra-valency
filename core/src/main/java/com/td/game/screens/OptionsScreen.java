@@ -127,6 +127,7 @@ public class OptionsScreen implements Screen {
                 KeyBindings.Action.MOVE_RIGHT,
                 KeyBindings.Action.CONSOLE_TOGGLE,
                 KeyBindings.Action.START_WAVE,
+                KeyBindings.Action.SPEED_TOGGLE,
                 KeyBindings.Action.BUY_FIRE,
                 KeyBindings.Action.BUY_WATER,
                 KeyBindings.Action.BUY_EARTH,
@@ -219,7 +220,8 @@ public class OptionsScreen implements Screen {
         shapes.end();
 
         batch.begin();
-        drawCentered("Options", rootPanel.x, rootPanel.y + rootPanel.height - 34f, rootPanel.width);
+        drawCentered(bindingsOpen ? "Edit Key Bindings" : "Options",
+                rootPanel.x, rootPanel.y + rootPanel.height - 34f, rootPanel.width);
         if (!bindingsOpen) {
             drawCentered("Music:", musicLabelPill.x, musicLabelPill.y + musicLabelPill.height * 0.67f,
                     musicLabelPill.width);
@@ -236,8 +238,6 @@ public class OptionsScreen implements Screen {
         }
         drawCentered("Back", backBtn.x, backBtn.y + backBtn.height * 0.67f, backBtn.width);
         if (bindingsOpen) {
-            drawCentered("Keybindings", bindingsPanel.x, bindingsPanel.y + bindingsPanel.height - 18f, bindingsPanel.width);
-
             for (int i = 0; i < controlActions.length; i++) {
                 KeyBindings.Action action = controlActions[i];
                 Rectangle pill = controlKeyPills[i];
@@ -335,6 +335,7 @@ public class OptionsScreen implements Screen {
             case MOVE_RIGHT: return "Move Right";
             case CONSOLE_TOGGLE: return "Console Toggle";
             case START_WAVE: return "Start Wave";
+            case SPEED_TOGGLE: return "Speed Toggle";
             case BUY_FIRE: return "Buy Fire";
             case BUY_WATER: return "Buy Water";
             case BUY_EARTH: return "Buy Earth";
