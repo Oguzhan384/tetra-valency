@@ -3434,6 +3434,11 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                         case LIGHT: dmgBuff = 1f + (0.04f * enemiesInAura); break; 
                         case FIRE: dmgBuff = 1.25f; break; 
                         case WATER: rngBuff = 1.25f; break; 
+                        case EARTH:
+                            dmgBuff = 1.05f;
+                            rngBuff = 1.05f;
+                            spdBuff = 1.05f;
+                            break;
                         case LIFE: lifeCharm = true; break; 
                         case POISON: poisonCharm = true; break; 
                         default: break;
