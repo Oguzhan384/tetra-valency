@@ -180,12 +180,14 @@ public class OptionsScreen implements Screen {
 
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         drawRect(rootPanel, 34f, new Color(0.89f, 0.67f, 0.26f, 0.96f));
-        drawPill(musicLabelPill, new Color(0.56f, 0.43f, 0.33f, 1f));
-        drawPill(soundLabelPill, new Color(0.56f, 0.43f, 0.33f, 1f));
-        drawPill(musicPercentPill, new Color(0.56f, 0.43f, 0.33f, 1f));
-        drawPill(soundPercentPill, new Color(0.56f, 0.43f, 0.33f, 1f));
-        drawPill(displayModePill, new Color(0.56f, 0.43f, 0.33f, 1f));
-        drawPill(editBindingsBtn, new Color(0.56f, 0.43f, 0.33f, 1f));
+        if (!bindingsOpen) {
+            drawPill(musicLabelPill, new Color(0.56f, 0.43f, 0.33f, 1f));
+            drawPill(soundLabelPill, new Color(0.56f, 0.43f, 0.33f, 1f));
+            drawPill(musicPercentPill, new Color(0.56f, 0.43f, 0.33f, 1f));
+            drawPill(soundPercentPill, new Color(0.56f, 0.43f, 0.33f, 1f));
+            drawPill(displayModePill, new Color(0.56f, 0.43f, 0.33f, 1f));
+            drawPill(editBindingsBtn, new Color(0.56f, 0.43f, 0.33f, 1f));
+        }
         drawRect(backBtn, backBtn.height * 0.5f, new Color(0.56f, 0.43f, 0.33f, 1f));
 
         if (bindingsOpen) {
@@ -201,31 +203,35 @@ public class OptionsScreen implements Screen {
             }
         }
 
-        shapes.setColor(new Color(0.82f, 0.82f, 0.82f, 1f));
-        shapes.rect(musicTrack.x, musicTrack.y, musicTrack.width, musicTrack.height);
-        shapes.rect(soundTrack.x, soundTrack.y, soundTrack.width, soundTrack.height);
-        shapes.setColor(new Color(0.15f, 0.18f, 0.22f, 1f));
-        shapes.rect(musicTrack.x, musicTrack.y, musicTrack.width * musicVolume, musicTrack.height);
-        shapes.rect(soundTrack.x, soundTrack.y, soundTrack.width * soundVolume, soundTrack.height);
-        shapes.setColor(new Color(0.24f, 0.27f, 0.33f, 1f));
-        shapes.rect(musicKnob.x, musicKnob.y, musicKnob.width, musicKnob.height);
-        shapes.rect(soundKnob.x, soundKnob.y, soundKnob.width, soundKnob.height);
+        if (!bindingsOpen) {
+            shapes.setColor(new Color(0.82f, 0.82f, 0.82f, 1f));
+            shapes.rect(musicTrack.x, musicTrack.y, musicTrack.width, musicTrack.height);
+            shapes.rect(soundTrack.x, soundTrack.y, soundTrack.width, soundTrack.height);
+            shapes.setColor(new Color(0.15f, 0.18f, 0.22f, 1f));
+            shapes.rect(musicTrack.x, musicTrack.y, musicTrack.width * musicVolume, musicTrack.height);
+            shapes.rect(soundTrack.x, soundTrack.y, soundTrack.width * soundVolume, soundTrack.height);
+            shapes.setColor(new Color(0.24f, 0.27f, 0.33f, 1f));
+            shapes.rect(musicKnob.x, musicKnob.y, musicKnob.width, musicKnob.height);
+            shapes.rect(soundKnob.x, soundKnob.y, soundKnob.width, soundKnob.height);
+        }
         shapes.end();
 
         batch.begin();
         drawCentered("Options", rootPanel.x, rootPanel.y + rootPanel.height - 34f, rootPanel.width);
-        drawCentered("Music:", musicLabelPill.x, musicLabelPill.y + musicLabelPill.height * 0.67f,
-                musicLabelPill.width);
-        drawCentered("Sound:", soundLabelPill.x, soundLabelPill.y + soundLabelPill.height * 0.67f,
-                soundLabelPill.width);
-        drawCentered(Math.round(musicVolume * 100f) + "%", musicPercentPill.x,
-                musicPercentPill.y + musicPercentPill.height * 0.67f, musicPercentPill.width);
-        drawCentered(Math.round(soundVolume * 100f) + "%", soundPercentPill.x,
-                soundPercentPill.y + soundPercentPill.height * 0.67f, soundPercentPill.width);
-        drawCentered("Display: " + (fullscreenMode ? "Fullscreen" : "Windowed"), displayModePill.x,
-                displayModePill.y + displayModePill.height * 0.67f, displayModePill.width);
-        drawCentered("Edit Keybindings", editBindingsBtn.x, editBindingsBtn.y + editBindingsBtn.height * 0.67f,
-                editBindingsBtn.width);
+        if (!bindingsOpen) {
+            drawCentered("Music:", musicLabelPill.x, musicLabelPill.y + musicLabelPill.height * 0.67f,
+                    musicLabelPill.width);
+            drawCentered("Sound:", soundLabelPill.x, soundLabelPill.y + soundLabelPill.height * 0.67f,
+                    soundLabelPill.width);
+            drawCentered(Math.round(musicVolume * 100f) + "%", musicPercentPill.x,
+                    musicPercentPill.y + musicPercentPill.height * 0.67f, musicPercentPill.width);
+            drawCentered(Math.round(soundVolume * 100f) + "%", soundPercentPill.x,
+                    soundPercentPill.y + soundPercentPill.height * 0.67f, soundPercentPill.width);
+            drawCentered("Display: " + (fullscreenMode ? "Fullscreen" : "Windowed"), displayModePill.x,
+                    displayModePill.y + displayModePill.height * 0.67f, displayModePill.width);
+            drawCentered("Edit Keybindings", editBindingsBtn.x, editBindingsBtn.y + editBindingsBtn.height * 0.67f,
+                    editBindingsBtn.width);
+        }
         drawCentered("Back", backBtn.x, backBtn.y + backBtn.height * 0.67f, backBtn.width);
         if (bindingsOpen) {
             drawCentered("Keybindings", bindingsPanel.x, bindingsPanel.y + bindingsPanel.height - 18f, bindingsPanel.width);
@@ -464,7 +470,25 @@ public class OptionsScreen implements Screen {
             float y = Gdx.graphics.getHeight() - screenY;
             if (backBtn.contains(screenX, y)) {
                 game.audio.playClick();
-                goBack();
+                if (bindingsOpen) {
+                    bindingsOpen = false;
+                    waitingFor = null;
+                } else {
+                    goBack();
+                }
+                return true;
+            }
+
+            if (bindingsOpen) {
+                for (int i = 0; i < controlKeyPills.length; i++) {
+                    Rectangle pill = controlKeyPills[i];
+                    float pillY = pill.y - bindingsScroll;
+                    if (screenX >= pill.x && screenX <= pill.x + pill.width && y >= pillY && y <= pillY + pill.height) {
+                        waitingFor = controlActions[i];
+                        showNotice("Press a key...");
+                        return true;
+                    }
+                }
                 return true;
             }
 
@@ -491,18 +515,6 @@ public class OptionsScreen implements Screen {
                 waitingFor = null;
                 return true;
             }
-
-            if (bindingsOpen) {
-                for (int i = 0; i < controlKeyPills.length; i++) {
-                    Rectangle pill = controlKeyPills[i];
-                    float pillY = pill.y - bindingsScroll;
-                    if (screenX >= pill.x && screenX <= pill.x + pill.width && y >= pillY && y <= pillY + pill.height) {
-                        waitingFor = controlActions[i];
-                        showNotice("Press a key...");
-                        return true;
-                    }
-                }
-            }
             return false;
         }
 
@@ -512,7 +524,7 @@ public class OptionsScreen implements Screen {
                 return false;
             }
             float maxScroll = Math.max(0f, bindingsContentHeight - bindingsViewport.height);
-            bindingsScroll = MathUtils.clamp(bindingsScroll + amountY * 20f, 0f, maxScroll);
+            bindingsScroll = MathUtils.clamp(bindingsScroll - amountY * 20f, 0f, maxScroll);
             return true;
         }
 
