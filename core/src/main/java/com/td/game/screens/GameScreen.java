@@ -2300,7 +2300,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
         moveTimer -= delta;
 
-        if (moveTimer <= 0) {
+        if (moveTimer <= 0 && !waveManager.isWaveInProgress()) {
             int dx = 0, dz = 0;
             if (com.td.game.input.KeyBindings.isPressed(com.td.game.input.KeyBindings.Action.MOVE_UP))
                 dz = -1;
