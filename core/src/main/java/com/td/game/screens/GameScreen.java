@@ -1456,30 +1456,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     }
 
     private String formatPillarStatLine(String label, float baseMult, float augmentMult, float auraMult) {
-        float externalMult = augmentMult * auraMult;
-        float totalMult = baseMult * externalMult;
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(label)
-                .append(": x")
-                .append(formatMultiplier(totalMult));
-
-        if (Math.abs(externalMult - 1f) > 0.0001f) {
-            sb.append(" (base x")
-                    .append(formatMultiplier(baseMult));
-
-            if (Math.abs(augmentMult - 1f) > 0.0001f) {
-                sb.append(", aug x")
-                        .append(formatMultiplier(augmentMult));
-            }
-            if (Math.abs(auraMult - 1f) > 0.0001f) {
-                sb.append(", aura x")
-                        .append(formatMultiplier(auraMult));
-            }
-            sb.append(")");
-        }
-
-        return sb.toString();
+        float totalMult = baseMult * augmentMult * auraMult;
+        return label + ": x" + formatMultiplier(totalMult);
     }
 
     private void renderPillarStats(int screenWidth, int screenHeight) {
