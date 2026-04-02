@@ -7,7 +7,7 @@ import com.badlogic.gdx.utils.ObjectMap;
 import com.td.game.input.KeyBindings;
 
 public class OptionsManager {
-    private static final String OPTIONS_PATH = "saves/options.json";
+    private static final String OPTIONS_FILE = "options.json";
     private static OptionsData cached;
 
     public static OptionsData get() {
@@ -18,8 +18,8 @@ public class OptionsManager {
     }
 
     public static void load() {
-        FileHandle local = Gdx.files.local(OPTIONS_PATH);
-        FileHandle internal = Gdx.files.internal(OPTIONS_PATH);
+        FileHandle local = SaveManager.getSharedSaveFile(OPTIONS_FILE);
+        FileHandle internal = Gdx.files.internal("saves/" + OPTIONS_FILE);
         OptionsData data = null;
         Json json = new Json();
         if (local.exists()) {
@@ -41,7 +41,7 @@ public class OptionsManager {
         if (cached == null) {
             return;
         }
-        FileHandle local = Gdx.files.local(OPTIONS_PATH);
+        FileHandle local = SaveManager.getSharedSaveFile(OPTIONS_FILE);
         if (!local.parent().exists()) {
             local.parent().mkdirs();
         }
