@@ -159,8 +159,6 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private final ConsoleMenu consoleMenu = new ConsoleMenu();
 
     private float globalTimer;
-    private float autoSaveTimer;
-    private static final float AUTO_SAVE_INTERVAL_SECONDS = 20f;
     private Array<AcquiredAugment> acquiredAugments;
     private boolean showingAugmentsPanel;
     private float playBtnX, playBtnY, playBtnW, playBtnH;
@@ -437,7 +435,6 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         paused = false;
         speedIndex = 0;
         autoplayEnabled = false;
-        autoSaveTimer = 0f;
 
 
         game.audio.playMapMusic(mapType);
@@ -2016,7 +2013,6 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         com.td.game.systems.SaveData data = com.td.game.systems.SaveManager.load(mapType);
         if (data != null) {
             this.globalTimer = data.globalTimer;
-            this.autoSaveTimer = 0f;
             waveManager.load(data);
             economyManager.load(data);
             player.load(data);
@@ -2402,6 +2398,7 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         waveManager.update(delta);
         if (wasWaveInProgress && !waveManager.isWaveInProgress() && waveManager.getCurrentWave() > 0) {
             game.audio.playWaveComplete();
+            saveGameState();
         }
 
         if (!waveManager.isWaveInProgress() && !waveManager.areAllWavesComplete()) {
@@ -2492,12 +2489,6 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             if (!activeEffects.get(i).isAlive()) {
                 activeEffects.removeIndex(i);
             }
-        }
-
-        autoSaveTimer += delta;
-        if (autoSaveTimer >= AUTO_SAVE_INTERVAL_SECONDS && !endgameTransitioning) {
-            saveGameState();
-            autoSaveTimer = 0f;
         }
 
         
