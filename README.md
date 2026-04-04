@@ -1,41 +1,38 @@
 # Tetra Valency
-
 <p align="center">
   <img src="assets/ui/game_logo.png" alt="Tetra Valency Logo" width="420" />
 </p>
-
-A LibGDX-based tower defense game centered around element-combining mechanics.
-The player places towers on the map, powers them up with the orb system, and keeps the defense alive
+A LibGDX-based tower defense game centered around elemental-merge mechanics.
+The player places Pillars on the map, powers them up with the Elemental Orbs, and keeps the Core alive
 through economy and positioning decisions across enemy waves.
 
-## Game Overview
+## Group Members
+- Ümit Yusuf Gönen
+- Oğuzhan Yılmaz
+- Burhan Türk
+- Ahmet Efe Canpolat
+- Onur Yusuf Yılmaz
 
-- Genre: Tower Defense
-- Engine: LibGDX (Java)
-- Platform: Desktop (LWJGL3)
-- Core loop:
-  - Map selection
-  - Tower placement
-  - Elemental Orb collection / merging
-  - Wave management
-  - Build progression with augment choices
+## Requirements
+- Java JDK 11 or later
+- Gradle Wrapper (`./gradlew` or `gradlew.bat`)
 
-## Core Features
+## Dependencies
+- `com.badlogicgames.gdx:gdx:1.13.0`
+- `com.badlogicgames.gdx:gdx-freetype:1.13.0`
+- `com.badlogicgames.gdx-video:gdx-video:1.3.4`
+- `com.badlogicgames.gdx:gdx-backend-lwjgl3:1.13.0`
+- `com.badlogicgames.gdx:gdx-platform:1.13.0:natives-desktop`
+- `com.badlogicgames.gdx:gdx-freetype-platform:1.13.0:natives-desktop`
+- `com.badlogicgames.gdx-video:gdx-video-lwjgl3:1.3.4`
 
-- 2 maps:
-  - Elemental Castle
-  - Desert Oasis
-- Tower types:
-  - Rapid
-  - Power
-  - Sniper
-- Element/Orb system:
-  - Base and hybrid elements
-  - Progression through inventory + merge board
-- In-game screens:
-  - Intro
-  - Main Menu
-  - Map Select
-  - Game Screen
-  - Leaderboard screens
-  - Options / Credits / Endgame
+## Running the Game
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/cosmovisi0n/tetra-valency.git
+   cd Tetra Valency
+   ```
+2. Run the game
+   ```bash
+   ./gradlew lwjgl3:run
+   ```
