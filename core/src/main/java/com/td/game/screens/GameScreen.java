@@ -1807,8 +1807,11 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         uiFontLarge.draw(uiBatch, nameA, leftX + (cardW - glyphLayout.width) * 0.5f, cardY + cardH - 120 * uiScale);
         uiFont.setColor(Color.WHITE);
         String descA = getAugmentDesc(augmentOptionA);
-        glyphLayout.setText(uiFont, descA);
-        uiFont.draw(uiBatch, descA, leftX + (cardW - glyphLayout.width) * 0.5f, cardY + 50 * uiScale);
+        float descWidth = cardW - 24f * uiScale;
+        uiFont.getData().setScale(uiScale * 0.5f);
+        glyphLayout.setText(uiFont, descA, Color.WHITE, descWidth, com.badlogic.gdx.utils.Align.center, true);
+        uiFont.draw(uiBatch, glyphLayout, leftX + 12f * uiScale, cardY + 58f * uiScale + glyphLayout.height);
+        uiFont.getData().setScale(uiScale * 0.54f);
 
         float rightX = boxX + 55 * uiScale + cardW + 15 * uiScale;
         Texture iconB = getAugmentIconTexture(augmentOptionB);
@@ -1822,8 +1825,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         uiFontLarge.draw(uiBatch, nameB, rightX + (cardW - glyphLayout.width) * 0.5f, cardY + cardH - 120 * uiScale);
         uiFont.setColor(Color.WHITE);
         String descB = getAugmentDesc(augmentOptionB);
-        glyphLayout.setText(uiFont, descB);
-        uiFont.draw(uiBatch, descB, rightX + (cardW - glyphLayout.width) * 0.5f, cardY + 50 * uiScale);
+        uiFont.getData().setScale(uiScale * 0.5f);
+        glyphLayout.setText(uiFont, descB, Color.WHITE, descWidth, com.badlogic.gdx.utils.Align.center, true);
+        uiFont.draw(uiBatch, glyphLayout, rightX + 12f * uiScale, cardY + 58f * uiScale + glyphLayout.height);
+        uiFont.getData().setScale(uiScale * 0.54f);
 
         uiBatch.end();
     }
@@ -1902,12 +1907,14 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             uiFont.setColor(Color.GOLD);
             glyphLayout.setText(uiFont, name);
             float nameW = glyphLayout.width;
+            float tooltipTextWidth = 190f * uiScale;
             uiFont.setColor(Color.WHITE);
-            glyphLayout.setText(uiFont, desc);
+            uiFont.getData().setScale(uiScale * 0.5f);
+            glyphLayout.setText(uiFont, desc, Color.WHITE, tooltipTextWidth, com.badlogic.gdx.utils.Align.left, true);
             float descW = glyphLayout.width;
 
-            float tooltipW = Math.max(nameW, descW) + 20 * uiScale;
-            float tooltipH = 60 * uiScale;
+            float tooltipW = Math.max(nameW, tooltipTextWidth) + 20 * uiScale;
+            float tooltipH = Math.max(70f * uiScale, glyphLayout.height + 38f * uiScale);
             float tooltipX = mouseX + 15 * uiScale;
             float tooltipY = mouseY - tooltipH - 15 * uiScale;
 
@@ -1930,7 +1937,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             uiFont.setColor(Color.GOLD);
             uiFont.draw(uiBatch, name, tooltipX + 10 * uiScale, tooltipY + tooltipH - 10 * uiScale);
             uiFont.setColor(Color.WHITE);
-            uiFont.draw(uiBatch, desc, tooltipX + 10 * uiScale, tooltipY + tooltipH - 35 * uiScale);
+            uiFont.draw(uiBatch, glyphLayout, tooltipX + 10 * uiScale, tooltipY + tooltipH - 30 * uiScale);
+            uiFont.getData().setScale(uiScale * 0.54f);
             uiBatch.end();
         }
     }
