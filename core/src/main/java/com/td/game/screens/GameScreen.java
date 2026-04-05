@@ -3,6 +3,8 @@ package com.td.game.screens;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -206,11 +208,13 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private boolean lifeReviveBossesEnabled = false;
     private boolean fireChainOfAhesEnabled = false;
     private boolean waterTidalSealEnabled = false;
+    private boolean airTurbulenceEnabled = false;
     private final HashMap<com.td.game.entities.Enemy, Integer> tidalSealHits = new HashMap<>();
+    private final HashMap<com.td.game.entities.Enemy, Float> turbulenceTimers = new HashMap<>();
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
-    private static final int MAX_AUGMENT_ID = 10;
+    private static final int MAX_AUGMENT_ID = 11;
 
     public GameScreen(TowerDefenseGame game) {
         this(game, GameMap.MapType.ELEMENTAL_CASTLE, false);
@@ -1953,6 +1957,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             case 10:
                 path = "ui/augment_icon_tidal_seal.png";
                 break;
+            case 11:
+                path = "ui/augment_icon_turbulence.png";
+                break;
         }
         com.badlogic.gdx.files.FileHandle file = resolveAsset(path);
         if (file.exists()) {
@@ -2086,7 +2093,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         this.lifeReviveBossesEnabled = data.lifeReviveBossesEnabled;
         this.fireChainOfAhesEnabled = false;
         this.waterTidalSealEnabled = false;
+        this.airTurbulenceEnabled = false;
         this.tidalSealHits.clear();
+        this.turbulenceTimers.clear();
 
         this.acquiredAugments.clear();
         for (int augId : data.acquiredAugments) {
@@ -2097,6 +2106,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 this.fireChainOfAhesEnabled = true;
             } else if (augId == 10) {
                 this.waterTidalSealEnabled = true;
+            } else if (augId == 11) {
+                this.airTurbulenceEnabled = true;
             }
         }
     }
@@ -2163,6 +2174,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 waterTidalSealEnabled = true;
                 showMessage("Augment: Tidal Seal");
                 break;
+            case 11:
+                airTurbulenceEnabled = true;
+                showMessage("Augment: Turbulence");
+                break;
             default:
                 break;
         }
@@ -2192,6 +2207,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Chain of Ahes";
             case 10:
                 return "Tidal Seal";
+            case 11:
+                return "Turbulence";
             default:
                 return "Unknown";
         }
@@ -2221,6 +2238,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Fire impacts chain to a nearby enemy for bonus damage and burn";
             case 10:
                 return "Every 3 Water hits on the same enemy apply a damage-taken seal";
+            case 11:
+                return "Air hits force enemies to walk backward for 2 seconds";
             default:
                 return "-";
         }
@@ -2520,6 +2539,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 }
             }
         }
+
+        updateTurbulenceTimers(delta);
 
         handleLifeAllyCollisions();
         waveManager.removeDeadEnemies();
@@ -3440,6 +3461,11 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 break;
             case AIR:
                 target.applyKnockback(2.0f);
+                if (airTurbulenceEnabled) {
+                    target.setMovingBackwards(true);
+                    turbulenceTimers.put(target, 2f);
+                    spawnEffect(target.getPosition(), Element.AIR, 0.35f, 1.0f);
+                }
                 break;
             case ICE:
                 target.applyFreeze(2f);
@@ -3475,6 +3501,31 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
 
         if (!target.isAlive()) {
             tidalSealHits.remove(target);
+            turbulenceTimers.remove(target);
+        }
+    }
+
+    private void updateTurbulenceTimers(float delta) {
+        if (turbulenceTimers.isEmpty()) {
+            return;
+        }
+
+        Iterator<Map.Entry<com.td.game.entities.Enemy, Float>> iterator = turbulenceTimers.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<com.td.game.entities.Enemy, Float> entry = iterator.next();
+            com.td.game.entities.Enemy enemy = entry.getKey();
+            if (enemy == null || !enemy.isAlive() || enemy.isAllied()) {
+                iterator.remove();
+                continue;
+            }
+
+            float remaining = entry.getValue() - delta;
+            if (remaining <= 0f) {
+                enemy.setMovingBackwards(false);
+                iterator.remove();
+            } else {
+                entry.setValue(remaining);
+            }
         }
     }
 

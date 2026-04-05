@@ -381,6 +381,15 @@ public class Enemy implements Disposable {
     private void advanceWaypoint() {
         if (isMovingBackwards) {
             currentWaypointIndex--;
+            if (currentWaypointIndex < 0) {
+                if (isAllied) {
+                    reachedEnd = true;
+                    alive = false;
+                } else {
+                    currentWaypointIndex = 0;
+                }
+                return;
+            }
         } else {
             currentWaypointIndex++;
         }
