@@ -205,10 +205,12 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
     private float staffAuraRadius = 8f;
     private boolean lifeReviveBossesEnabled = false;
     private boolean fireChainOfAhesEnabled = false;
+    private boolean waterTidalSealEnabled = false;
+    private final HashMap<com.td.game.entities.Enemy, Integer> tidalSealHits = new HashMap<>();
     private static final int MERGE_COST = 20;
     private static final float INFO_PANEL_SHIFT_DOWN = 100f;
     private static final float GATE_MODEL_SCALE_MULTIPLIER = 2.0f;
-    private static final int MAX_AUGMENT_ID = 9;
+    private static final int MAX_AUGMENT_ID = 10;
 
     public GameScreen(TowerDefenseGame game) {
         this(game, GameMap.MapType.ELEMENTAL_CASTLE, false);
@@ -1948,6 +1950,9 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
             case 9:
                 path = "ui/augment_icon_chain_of_ashes.png";
                 break;
+            case 10:
+                path = "ui/augment_icon_tidal_seal.png";
+                break;
         }
         com.badlogic.gdx.files.FileHandle file = resolveAsset(path);
         if (file.exists()) {
@@ -2080,6 +2085,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         this.staffAuraRadius = data.staffAuraRadius;
         this.lifeReviveBossesEnabled = data.lifeReviveBossesEnabled;
         this.fireChainOfAhesEnabled = false;
+        this.waterTidalSealEnabled = false;
+        this.tidalSealHits.clear();
 
         this.acquiredAugments.clear();
         for (int augId : data.acquiredAugments) {
@@ -2088,6 +2095,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 this.lifeReviveBossesEnabled = true;
             } else if (augId == 9) {
                 this.fireChainOfAhesEnabled = true;
+            } else if (augId == 10) {
+                this.waterTidalSealEnabled = true;
             }
         }
     }
@@ -2150,6 +2159,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 fireChainOfAhesEnabled = true;
                 showMessage("Augment: Chain of Ahes");
                 break;
+            case 10:
+                waterTidalSealEnabled = true;
+                showMessage("Augment: Tidal Seal");
+                break;
             default:
                 break;
         }
@@ -2177,6 +2190,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Necromancy";
             case 9:
                 return "Chain of Ahes";
+            case 10:
+                return "Tidal Seal";
             default:
                 return "Unknown";
         }
@@ -2204,6 +2219,8 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 return "Life can revive bosses";
             case 9:
                 return "Fire impacts chain to a nearby enemy for bonus damage and burn";
+            case 10:
+                return "Every 3 Water hits on the same enemy apply a damage-taken seal";
             default:
                 return "-";
         }
@@ -3410,6 +3427,16 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
                 break;
             case WATER:
                 target.applySlow(3f, 0.5f);
+                if (waterTidalSealEnabled) {
+                    int hits = tidalSealHits.getOrDefault(target, 0) + 1;
+                    if (hits >= 3) {
+                        hits = 0;
+                        target.applyArmorMelt(3f, 0.20f);
+                        target.applySlow(2f, 0.35f);
+                        spawnEffect(target.getPosition(), Element.WATER, 0.45f, 1.05f);
+                    }
+                    tidalSealHits.put(target, hits);
+                }
                 break;
             case AIR:
                 target.applyKnockback(2.0f);
@@ -3444,6 +3471,10 @@ public class GameScreen implements Screen, ConsoleMenu.Context {
         
         if (!target.isAlive() && proj.isLifeCharmActive() && proj.getSourcePillar() != null) {
             proj.getSourcePillar().activateLifeFrenzy();
+        }
+
+        if (!target.isAlive()) {
+            tidalSealHits.remove(target);
         }
     }
 
